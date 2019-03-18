@@ -4,41 +4,77 @@
         xmlns:prism="http://prismlibrary.com/"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Title="{Binding Title}" Height="200" Width="685" Icon="/InsuranceCompareTool;component/bull.ico" WindowStartupLocation="CenterScreen">
+        Title="{Binding Title}" Height="628" Width="837" Icon="/InsuranceCompareTool;component/sheep.ico" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <i:InvokeCommandAction Command="{Binding SaveCommand}"  />
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Grid>
-        <Border Padding="20">
-            <Grid>
-                <GroupBox Header="Options" Padding="20">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="229*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="60"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Grid.Column="0">源文件</Label>
-                        <Label Grid.Row="2" Grid.Column="0">目标路径</Label>
-                        <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding SourceFile}"></TextBox>
-                        <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding TargetFile}"></TextBox>
-                        <Button  Grid.Row="0" Grid.Column="4"  Command="{Binding SelectSourceFileCommand}">...</Button>
-                        <Button  Grid.Row="2" Grid.Column="4" Command="{Binding SelectTargetFileCommand}">...</Button>
-                        <Button  Grid.Row="0" Grid.Column="6" Grid.RowSpan="3" Command="{Binding ExportCommand}">导出</Button>
-                    </Grid>
-                </GroupBox>
-            </Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="559*"/>
+            <ColumnDefinition Width="272*"/>
+        </Grid.ColumnDefinitions>
+        <Border Padding="10" Grid.ColumnSpan="2">
+            <TabControl IsEnabled="{Binding IsEnabled}">
+                <TabItem Header=" Tools  ">
+                    <Border Padding="30">
+                        <Border.Background>
+                            <ImageBrush ImageSource="/InsuranceCompareTool;component/flow.png"/>
+                        </Border.Background>
+                        <Canvas>
+                            <Button     Command="{Binding CreateDataCommand}" Width="99" Height="28" Content="A 轮调单" Canvas.Left="93" Canvas.Top="109"  />
+                            <Button     Command="{Binding ImportDataCommand}"  Width="100" Height="30" Content="B 轮调单" Canvas.Left="93" Canvas.Top="190" IsEnabled="{Binding IsMainTableEnabled}"/>
+                            <Button     Command="{Binding BuildReportCommand}"  Width="100" Height="30" Content="C 轮调单" Canvas.Left="93" Canvas.Top="276" IsEnabled="{Binding IsMainTableEnabled}"/>
+                            <TextBlock Canvas.Left="502" Canvas.Top="293">
+                                <Hyperlink FontWeight="Bold"  Command="{Binding ExportTypeCBillCommand}">按客服专员分表</Hyperlink>
+                            </TextBlock>
+                        </Canvas>
+
+                    </Border>
+                </TabItem>
+                <TabItem Header=" Settings  ">
+                    <Border Padding="30">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="229*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="10*"/>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0">人员表:</Label>
+                            <Label Grid.Row="2" Grid.Column="0">部门表:</Label>
+                            <Label Grid.Row="4" Grid.Column="0">绑定表:</Label>
+                            <Label Grid.Row="6" Grid.Column="0">工作目录:</Label>
+                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding MembersFile}"></TextBox>
+                            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding DepartmentsFile}"></TextBox>
+                            <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding RelationFile}"></TextBox>
+                            <TextBox Grid.Row="6" Grid.Column="2" Text="{Binding TargetFile}"></TextBox>
+                            <Button  Grid.Row="0" Grid.Column="4"  Command="{Binding SelectMembersFileCommand}">...</Button>
+                            <Button  Grid.Row="2" Grid.Column="4"  Command="{Binding SelectDepartmentsFileCommand}">...</Button>
+                            <Button  Grid.Row="4" Grid.Column="4"  Command="{Binding SelectRelationFileCommand}">...</Button>
+                            <Button  Grid.Row="6" Grid.Column="4" Command="{Binding SelectTargetFileCommand}">...</Button>
+                            <Button  Grid.Row="0" Grid.Column="6"  Command="{Binding OpenMemberFileCommand}">open</Button>
+                            <Button  Grid.Row="2" Grid.Column="6"  Command="{Binding OpenDepartmentsFileCommand}">open</Button>
+                            <Button  Grid.Row="4" Grid.Column="6"  Command="{Binding OpenRelationFileFileCommand}">open</Button>
+                            <Button  Grid.Row="6" Grid.Column="6"  Command="{Binding OpenWorkPositionCommand}">open</Button>
+                        </Grid>
+                    </Border>
+                </TabItem>
+            </TabControl>
         </Border>
     </Grid>
 </Window>

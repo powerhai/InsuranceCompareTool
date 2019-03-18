@@ -36,7 +36,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>bull.ico</ApplicationIcon>
+    <ApplicationIcon>sheep.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -68,7 +68,31 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\ExtendedEnum.cs" />
+    <Compile Include="Dispatch\Dispatcher.cs" />
     <Compile Include="Exporter.cs" />
+    <Compile Include="Models\BillStatus.cs" />
+    <Compile Include="Models\Relation.cs" />
+    <Compile Include="Models\Department.cs" />
+    <Compile Include="Models\Names.cs" />
+    <Compile Include="Models\Member.cs" />
+    <Compile Include="Models\RowType.cs" />
+    <Compile Include="Services\BillAreaService.cs" />
+    <Compile Include="Services\BillDispatchService.cs" />
+    <Compile Include="Services\BillExportTypeAService.cs" />
+    <Compile Include="Services\BillExportTypeCService.cs" />
+    <Compile Include="Services\BillFormatService.cs" />
+    <Compile Include="Services\BillLoadService.cs" />
+    <Compile Include="Models\SheetColumn.cs" />
+    <Compile Include="Services\BillStatusService.cs" />
+    <Compile Include="Services\BillMemberService.cs" />
+    <Compile Include="Services\DataValidateService.cs" />
+    <Compile Include="Services\DepartmentLoadService.cs" />
+    <Compile Include="Services\FileNameService.cs" />
+    <Compile Include="Services\MemberService.cs" />
+    <Compile Include="Core\SheetReader.cs" />
+    <Compile Include="Services\RelationLoadService.cs" />
+    <Compile Include="Services\ServiceBillsTableWriter.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -110,6 +134,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="bull.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="flow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="sheep.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
