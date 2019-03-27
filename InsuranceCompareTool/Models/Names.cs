@@ -56,6 +56,8 @@ namespace InsuranceCompareTool.Models
         public const string POSITION = "职务";
         public const string STATUS = "状态";
         public const string AREA = "地区";
+        public const string VIRTUAL = "虚拟";
+        public const string REPORTABLE = "列出清单";
     }
 
     public static class DepartmentSheetColumns
@@ -72,6 +74,12 @@ namespace InsuranceCompareTool.Models
         public const string AREA = "地区";
         public const string BIND_TYPE = "绑定类型";
         public const string BIND_STRING = "绑定字符";
+    }
+
+    public static class StatisticsColumns
+    {
+        public const string COUNT = "总单数";
+        public const string SUM = "总金额";
     }
 
     public static class StatusNames

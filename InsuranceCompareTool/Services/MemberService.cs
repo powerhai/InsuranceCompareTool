@@ -17,6 +17,8 @@ namespace InsuranceCompareTool.Services
         private SheetColumn mColPosition = new SheetColumn() { Title = MemberSheetColumns.POSITION };
         private SheetColumn mColStatus = new SheetColumn() { Title = MemberSheetColumns.STATUS };
         private SheetColumn mColArea = new SheetColumn() { Title = MemberSheetColumns.AREA }; 
+        private SheetColumn mColVirtual = new SheetColumn() { Title = MemberSheetColumns.VIRTUAL };
+        private SheetColumn mColReportable = new SheetColumn() { Title = MemberSheetColumns.REPORTABLE };
 
         public static MemberService CreateInstance()
         {
@@ -56,7 +58,17 @@ namespace InsuranceCompareTool.Services
                     {
                         mColArea.Index = col.Index;
                         break;
-                    } 
+                    }
+                    case MemberSheetColumns.VIRTUAL:
+                    {
+                        mColVirtual.Index = col.Index;
+                        break;
+                    }
+                    case MemberSheetColumns.REPORTABLE:
+                    {
+                        mColReportable.Index = col.Index;
+                        break;
+                    }
                 }
             }
         }
@@ -140,7 +152,15 @@ namespace InsuranceCompareTool.Services
                 bill.Name = row.GetCell(mColName.Index)?.StringCellValue.Trim();
                 bill.Position = row.GetCell(mColPosition.Index)?.StringCellValue.Trim();
                 bill.Status = row.GetCell(mColStatus.Index)?.StringCellValue.Trim();
-                bill.Area = row.GetCell(mColArea.Index)?.StringCellValue.Trim(); 
+                bill.Area = row.GetCell(mColArea.Index)?.StringCellValue.Trim();
+                if(mColReportable.Index > 0 && row.GetCell(mColReportable.Index) != null)
+                {
+                    bill.Reportable = row.GetCell(mColReportable.Index).StringCellValue.Trim().Equals("Yes", StringComparison.CurrentCultureIgnoreCase);
+                }
+                if (mColVirtual.Index > 0 && row.GetCell(mColVirtual.Index) != null)
+                {
+                    bill.VirtualMember = row.GetCell(mColVirtual.Index).StringCellValue.Trim().Equals("Yes", StringComparison.CurrentCultureIgnoreCase);
+                }
             }
             catch (Exception ex)
             {

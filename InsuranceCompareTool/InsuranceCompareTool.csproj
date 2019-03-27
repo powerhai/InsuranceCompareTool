@@ -92,7 +92,10 @@
     <Compile Include="Services\MemberService.cs" />
     <Compile Include="Core\SheetReader.cs" />
     <Compile Include="Services\RelationLoadService.cs" />
-    <Compile Include="Services\ServiceBillsTableWriter.cs" />
+    <Compile Include="Services\ServiceBillsStatisticsWriter.cs" />
+    <Compile Include="Core\ServiceBillsTableWriter.cs" />
+    <Compile Include="Core\ServiceBillsTableWriterB.cs" />
+    <Compile Include="Models\WriteType.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

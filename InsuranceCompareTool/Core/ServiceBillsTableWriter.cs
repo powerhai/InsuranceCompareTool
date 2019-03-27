@@ -6,7 +6,7 @@ using InsuranceCompareTool.Models;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
-namespace InsuranceCompareTool.Services {
+namespace InsuranceCompareTool.Core {
     public class ServiceBillsTableWriter
     {
         #region Fields
@@ -219,7 +219,7 @@ namespace InsuranceCompareTool.Services {
             var row = sheet.CreateRow(sheet.LastRowNum + 1);
             foreach (var column in Columns)
             {
-                row.CreateCell(column.Index).CellStyle =   sheet.GetColumnStyle(column.Index); 
+                //row.CreateCell(column.Index).CellStyle =   sheet.GetColumnStyle(column.Index); 
             }
 
             row.Height = 200 * 3;

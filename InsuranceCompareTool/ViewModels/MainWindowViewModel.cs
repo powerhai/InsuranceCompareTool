@@ -410,6 +410,10 @@ namespace InsuranceCompareTool.ViewModels
                         mBillExportTypeCService.Export(mFileNameService.ServicePath, bills,members);
                         Process.Start(mFileNameService.ServicePath);
                     }
+                    //catch (InvalidOperationException e1)
+                    //{
+                    //    MessageBox.Show("操作不能继续：文件正被使用!", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //}
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
