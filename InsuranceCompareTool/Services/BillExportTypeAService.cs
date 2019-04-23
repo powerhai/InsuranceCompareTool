@@ -25,9 +25,11 @@ namespace InsuranceCompareTool.Services
 
         public string Export(string  sourceFile, string targetFile, List<Bill> bills)
         { 
-            //File.Copy(sourceFile,targetFile, true);
+            //
+            var tempFile = "abc.xlsx";
+            File.Copy(sourceFile,tempFile, true);
 
-            IWorkbook tarExcel = new XSSFWorkbook(sourceFile);
+            IWorkbook tarExcel = new XSSFWorkbook(tempFile);
             ISheet tarSheet = tarExcel.GetSheetAt(0);
             SheetReader sheetReader = new SheetReader(tarSheet); 
              
@@ -43,7 +45,7 @@ namespace InsuranceCompareTool.Services
             var file = new FileStream(targetFile, FileMode.CreateNew, FileAccess.Write);
             tarExcel.Write(file);
             file.Close();
-
+             
             tarExcel.Close();
             
             return "";
@@ -93,48 +95,64 @@ namespace InsuranceCompareTool.Services
         {
             var row = tarSheet.GetRow(tarSheet.FirstRowNum);
  
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.ServiceNotAvailable.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.Yiwu.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.NoService.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.NoLastService.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.ServiceSameToSeller.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.BindService.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.AcrossArea234.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.AcrossArea5.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.AreaSell.GetDescription());
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.SellerNotAvailable.GetDescription()); 
-            row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.Error.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue( BillStatus.ServiceNotAvailable.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.Yiwu.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.NoService.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.NoLastService.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.ServiceSameToSeller.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.BindService.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.AcrossArea234.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.AcrossArea5.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.AreaSell.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.SellerNotAvailable.GetDescription());
+            //row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.Error.GetDescription());
+            row.CreateCell(row.LastCellNum).SetCellValue(BillStatus.DifferentService.GetDescription());
+            row.CreateCell(row.LastCellNum).SetCellValue("原客服");
+            row.CreateCell(row.LastCellNum).SetCellValue("现客服");
+            row.CreateCell(row.LastCellNum).SetCellValue("身份证");
+
         }
         private void CopyRow(Bill bill, ISheet tarSheet, List<SheetColumn> columns)
         {
             try
             { 
                 var trow = tarSheet.GetRow(bill.RowNum);
-                  
+
+
                 var curSevID = columns.FirstOrDefault(a => a.Title.Equals(BillSheetColumns.CURRENT_SERVICE_ID));
                 var curSevName = columns.FirstOrDefault(a => a.Title.Equals(BillSheetColumns.CURRENT_SERVICE_NAME));
-                if (bill.CurrentServiceObj != null && bill.LastServiceObj != null && !bill.CurrentServiceObj.ID.Equals(bill.LastServiceObj.ID))
+                //if (bill.CurrentServiceObj != null && bill.LastServiceObj != null && !bill.CurrentServiceObj.ID.Equals(bill.LastServiceObj.ID))
+                //{
+                //    trow.GetCell(curSevID.Index)?.SetCellValue(bill.CurrentServiceID);
+                //    trow.GetCell(curSevName.Index)?.SetCellValue(bill.CurrentServiceName);
+                //}
+
+                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.DifferentService) ? "Y" : "");
+               
+                if(bill.Statuses.Contains(BillStatus.DifferentService))
                 {
-                    trow.GetCell(curSevID.Index)?.SetCellValue(bill.CurrentServiceID);
-                    trow.GetCell(curSevName.Index)?.SetCellValue(bill.CurrentServiceName);
+                        trow.GetCell(curSevID.Index)?.SetCellValue(bill.CurrentServiceID);
+                        trow.GetCell(curSevName.Index)?.SetCellValue(bill.CurrentServiceName);
+
+                    trow.CreateCell(trow.LastCellNum).SetCellValue(bill.SrcServiceName);
+                    trow.CreateCell(trow.LastCellNum).SetCellValue(bill.CurrentServiceName);
+                    trow.CreateCell(trow.LastCellNum).SetCellValue(bill.CustomerPassportID);
                 }
-
-
-                var lastServiceIdCell = trow.CreateCell(trow.LastCellNum);
-                lastServiceIdCell.SetCellValue(bill.LastServiceID);
-                var lastServiceName = trow.CreateCell(trow.LastCellNum);
-                lastServiceName.SetCellValue(bill.LastServiceName);
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.ServiceNotAvailable) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.Yiwu) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.NoService) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.NoLastService) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.ServiceSameToSeller) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.BindService) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.AcrossArea234) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.AcrossArea5) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.AreaSell) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.SellerNotAvailable) ? "Y" : "");
-                trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.Error) ? "Y" : "");
+                //var lastServiceIdCell = trow.CreateCell(trow.LastCellNum);
+                //lastServiceIdCell.SetCellValue(bill.LastServiceID);
+                //var lastServiceName = trow.CreateCell(trow.LastCellNum);
+                //lastServiceName.SetCellValue(bill.LastServiceName);
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.ServiceNotAvailable) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.Yiwu) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.NoService) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.NoLastService) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.ServiceSameToSeller) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.BindService) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.AcrossArea234) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.AcrossArea5) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.AreaSell) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.SellerNotAvailable) ? "Y" : "");
+                //trow.CreateCell(trow.LastCellNum).SetCellValue(bill.Statuses.Contains(BillStatus.Error) ? "Y" : "");
             }
             catch(Exception ex)
             {

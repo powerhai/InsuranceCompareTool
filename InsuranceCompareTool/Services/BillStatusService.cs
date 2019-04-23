@@ -88,6 +88,24 @@ namespace InsuranceCompareTool.Services
                 }
  
             }
+
+            var sfzs = bills.Select(a => a.CustomerPassportID).Distinct().ToArray();
+            int no = 1;
+            foreach(var sfz  in sfzs)
+            {
+                var sbills = bills.Where(a => a.CustomerPassportID.Equals(sfz)).ToArray();
+                if(sbills.Length > 1)
+                {
+                    var services = sbills.Select(a => a.CurrentServiceID).Distinct().ToArray();
+                    if(services.Length > 1)
+                    {
+                        foreach(var bill in sbills)
+                        {
+                            bill.Statuses.Add(BillStatus.DifferentService); 
+                        }
+                    }
+                }
+            }
         }
     }
 }

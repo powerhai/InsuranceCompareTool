@@ -18,13 +18,13 @@ namespace InsuranceCompareTool.Core {
             {
                 Title = BillSheetColumns.CURRENT_SERVICE_NAME,
                 Index = 0,
-                Width = 700 * 3
+                Width = 2000
             },
             new SheetColumn
             {
                 Title = BillSheetColumns.SELLER_NAME,
                 Index = 1,
-                Width = 700 * 3
+                Width = 2000
             },
             new SheetColumn
             {
@@ -49,7 +49,7 @@ namespace InsuranceCompareTool.Core {
             {
                 Title = BillSheetColumns.PAY_ADDRESS,
                 Index = 5,
-                Width = 700 * 9,
+                Width = 700 * 8,
 
             },
 
@@ -57,28 +57,28 @@ namespace InsuranceCompareTool.Core {
             {
                 Title = BillSheetColumns.BILL_PRICE,
                 Index = 6,
-                Width = 700 * 3,
+                Width = 2000,
                 Alignment = HorizontalAlignment.Right
             },
             new SheetColumn
             {
                 Title = BillSheetColumns.PAY_DATE,
                 Index = 7,
-                Width =700 * 4,
+                Width =2700,
                 Alignment = HorizontalAlignment.Center
             },
             new SheetColumn
             {
                 Title = BillSheetColumns.PER_PAY,
                 Index = 8,
-                Width = 650 * 2,
+                Width = 1300,
                 Alignment = HorizontalAlignment.Center
             },
             new SheetColumn
             {
                 Title = BillSheetColumns.PAY_NO,
                 Index = 9,
-                Width = 650 * 2,
+                Width = 1300,
                 Alignment = HorizontalAlignment.Center
             },
             new SheetColumn
@@ -99,6 +99,13 @@ namespace InsuranceCompareTool.Core {
                 Index = 12,
                 Width = 700 * 7   + 300 ,
                 Alignment = HorizontalAlignment.Left
+            },
+            new SheetColumn()
+            {
+                Title = BillSheetColumns.IS_OURS2,
+                Index = 13,
+                Width = 1000,
+                Alignment = HorizontalAlignment.Center 
             }
         };
         public readonly SheetColumn[] ColumnsB =
@@ -133,7 +140,7 @@ namespace InsuranceCompareTool.Core {
             {
                 Title = BillSheetColumns.PAY_ADDRESS,
                 Index = 4,
-                Width = 1200 * 9,
+                Width = 1200 * 6,
 
             },
              
@@ -183,6 +190,14 @@ namespace InsuranceCompareTool.Core {
                 Index = 11,
                 Width = 700 * 7   + 300 ,
                 Alignment = HorizontalAlignment.Left
+            }
+            ,
+            new SheetColumn()
+            {
+                Title = BillSheetColumns.IS_OURS2,
+                Index = 12,
+                Width = 1100,
+                Alignment = HorizontalAlignment.Center
             }
         };
         private readonly short DataBackgroundColor = IndexedColors.White.Index;
@@ -436,6 +451,10 @@ namespace InsuranceCompareTool.Core {
                     row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PER_PAY)).Index).SetCellValue(bill.PerPay);
                 if (!string.IsNullOrEmpty(bill.PayAddress))
                     row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PAY_ADDRESS)).Index)?.SetCellValue(bill.PayAddress.Replace("浙江省","").Replace("金华市",""));
+                if(!string.IsNullOrEmpty(bill.IsOurs))
+                {
+                    row.GetCell(columns.First(a=>a.Title.Equals(BillSheetColumns.IS_OURS2)).Index).SetCellValue(bill.IsOurs);
+                }
                 var payDateCol = row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PAY_DATE)).Index);
                 payDateCol.SetCellValue(bill.PayDate.ToString("yyyy/MM/dd"));
             }

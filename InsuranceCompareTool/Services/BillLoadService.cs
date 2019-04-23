@@ -216,6 +216,11 @@ namespace InsuranceCompareTool.Services {
                         mColMobilePhone.Index = col.Index;
                         break;
                     }
+                    case BillSheetColumns.IS_OURS:
+                    {
+                        mColIsOurs.Index = col.Index;
+                        break;
+                    }
                 } 
             }
         }
@@ -253,6 +258,10 @@ namespace InsuranceCompareTool.Services {
                     bill.MobilePhone = row.GetCell(mColMobilePhone.Index)?.StringCellValue.Trim();
                 if(mColPayAddress.Index >= 0)
                     bill.PayAddress = row.GetCell(mColPayAddress.Index)?.StringCellValue.Trim();
+                if(mColIsOurs.Index >= 0)
+                {
+                    bill.IsOurs = row.GetCell(mColIsOurs.Index)?.StringCellValue.Trim();
+                }
             }
             catch(Exception ex)
             {
@@ -283,6 +292,7 @@ namespace InsuranceCompareTool.Services {
         private readonly SheetColumn mColCreditor = new SheetColumn(){ Title =  BillSheetColumns.CREDITOR};
         private readonly SheetColumn mColAccount = new SheetColumn(){ Title =  BillSheetColumns.CUSTOMER_ACCOUNT};
         private readonly SheetColumn mColMobilePhone = new SheetColumn(){ Title =  BillSheetColumns.MOBILE_PHONE};
+        private readonly SheetColumn mColIsOurs = new SheetColumn(){ Title = BillSheetColumns.IS_OURS};
 
     }
 }

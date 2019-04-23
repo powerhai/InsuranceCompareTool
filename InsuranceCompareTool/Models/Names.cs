@@ -47,6 +47,9 @@ namespace InsuranceCompareTool.Models
         public const string CREDITOR = "被保险人";
         public const string CUSTOMER_ACCOUNT = "帐号";
         public const string MOBILE_PHONE = "手机";
+        public const string IS_OURS = "是否自保件";
+        public const string IS_OURS2 = "自保件";
+
     }
 
     public static class MemberSheetColumns

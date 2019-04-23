@@ -25,6 +25,8 @@ namespace InsuranceCompareTool.Models {
         [Description("区拓")]
         AreaSell,
         [Description("分辨错误")]
-        Error
+        Error,
+        [Description("客服不同")]
+        DifferentService
     }
 }

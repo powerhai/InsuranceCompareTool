@@ -64,5 +64,7 @@ namespace InsuranceCompareTool.Models
         
         public string CustomerAccount { get; set; } 
         public string MobilePhone { get; set; }
+        public string SrcServiceName { get; set; }
+        public string IsOurs { get; set; }
     }
 }

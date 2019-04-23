@@ -3,7 +3,7 @@ using System.Linq;
 using InsuranceCompareTool.Models;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-namespace InsuranceCompareTool.Services {
+namespace InsuranceCompareTool.Core {
     public class ServiceBillsStatisticsWriter
     {
         public readonly SheetColumn[] Columns =
