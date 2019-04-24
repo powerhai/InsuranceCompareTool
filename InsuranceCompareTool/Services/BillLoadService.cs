@@ -216,6 +216,7 @@ namespace InsuranceCompareTool.Services {
                         mColMobilePhone.Index = col.Index;
                         break;
                     }
+                    case BillSheetColumns.IS_OURS2:
                     case BillSheetColumns.IS_OURS:
                     {
                         mColIsOurs.Index = col.Index;
