@@ -60,6 +60,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Class1.cs" />
+    <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="ViewModels\PolicyViewViewModel.cs" />
+    <Compile Include="ViewModels\SettingsViewViewModel.cs" />
+    <Compile Include="Views\PolicyView.xaml.cs">
+      <DependentUpon>PolicyView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SettingsView.xaml.cs">
+      <DependentUpon>SettingsView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Views\AssignView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -69,8 +83,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\ExtendedEnum.cs" />
+    <Compile Include="Dispatch\Class1.cs" />
+    <Compile Include="Dispatch\Class2.cs" />
     <Compile Include="Dispatch\Dispatcher.cs" />
     <Compile Include="Exporter.cs" />
+    <Compile Include="Models\allocation.cs" />
     <Compile Include="Models\BillStatus.cs" />
     <Compile Include="Models\Relation.cs" />
     <Compile Include="Models\Department.cs" />
@@ -88,6 +105,7 @@
     <Compile Include="Services\BillMemberService.cs" />
     <Compile Include="Services\DataValidateService.cs" />
     <Compile Include="Services\DepartmentLoadService.cs" />
+    <Compile Include="Services\ExportTemplateService.cs" />
     <Compile Include="Services\FileNameService.cs" />
     <Compile Include="Services\MemberService.cs" />
     <Compile Include="Core\SheetReader.cs" />
@@ -96,11 +114,24 @@
     <Compile Include="Core\ServiceBillsTableWriter.cs" />
     <Compile Include="Core\ServiceBillsTableWriterB.cs" />
     <Compile Include="Models\WriteType.cs" />
+    <Compile Include="Models\SheetTemplate.cs" />
+    <Compile Include="ViewModels\AssignViewViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="Views\AssignView.xaml.cs">
+      <DependentUpon>AssignView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\PolicyView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SettingsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -125,6 +156,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Content Include="TemplateC.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="mind.xmind" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NPOI">
@@ -133,6 +168,9 @@
     <PackageReference Include="Prism.Unity" Version="7.1.0.431&#xD;" />
     <PackageReference Include="System.Windows.Interactivity.WPF">
       <Version>2.0.20525</Version>
+    </PackageReference>
+    <PackageReference Include="WPFChromeTabsMVVM">
+      <Version>1.3.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -144,5 +182,6 @@
   <ItemGroup>
     <Resource Include="sheep.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

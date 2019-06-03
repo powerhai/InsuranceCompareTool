@@ -2,7 +2,7 @@
 using Prism.Ioc;
 using Prism.Modularity;
 using System.Windows;
-
+using InsuranceCompareTool.Services;
 namespace InsuranceCompareTool
 {
     /// <summary>
@@ -17,7 +17,8 @@ namespace InsuranceCompareTool
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-
+            var configService = this.Container.Resolve<ConfigService>(); 
+            containerRegistry.RegisterInstance<ConfigService>(configService);
         }
     }
 }

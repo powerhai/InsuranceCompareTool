@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 
 namespace InsuranceCompareTool.Dispatch
 {
-    public class Dispatcher
+    public abstract class DispatcherBase
     {
+        public abstract void DispatchBills();
     }
 
-    public class Dispatcher1 
+    public class DispatchToManager : DispatcherBase
     {
+        public override void DispatchBills()
+        {
 
+        }
     }
+     
 }

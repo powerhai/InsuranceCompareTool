@@ -66,5 +66,6 @@ namespace InsuranceCompareTool.Models
         public string MobilePhone { get; set; }
         public string SrcServiceName { get; set; }
         public string IsOurs { get; set; }
+        public string StatusOfDj { get; set; }
     }
 }

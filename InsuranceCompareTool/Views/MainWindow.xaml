@@ -3,19 +3,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:prism="http://prismlibrary.com/"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:views="clr-namespace:InsuranceCompareTool.Views"
+        xmlns:chromeTabs="clr-namespace:ChromeTabs;assembly=ChromeTabs"
+        xmlns:viewModels="clr-namespace:InsuranceCompareTool.ViewModels"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Title="{Binding Title}" Height="628" Width="837" Icon="/InsuranceCompareTool;component/sheep.ico" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="{Binding Title}" Height="800" Width="837"  Icon="/InsuranceCompareTool;component/sheep.ico" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"  >
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <i:InvokeCommandAction Command="{Binding SaveCommand}"  />
         </i:EventTrigger>
     </i:Interaction.Triggers>
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewModels:SettingsViewViewModel}">
+            <views:SettingsView ></views:SettingsView>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:PolicyViewViewModel}">
+            <views:PolicyView ></views:PolicyView>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="559*"/>
-            <ColumnDefinition Width="272*"/>
-        </Grid.ColumnDefinitions>
-        <Border Padding="10" Grid.ColumnSpan="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="291*"/>
+            <RowDefinition Height="291*"/>
+        </Grid.RowDefinitions> 
+<ToolBar >
+
+            <Button Content="Assign" Command="{Binding GotoAssignView}"/>
+    <Button Content="Policy" Command="{Binding GotoPolicyView}"/>
+    <Button Content="Settings" Command="{Binding GotoSettingsView}"/>
+            <Button/>
+        </ToolBar>
+        <Border Padding="10" Grid.ColumnSpan="2" Grid.Row="1">
             <TabControl IsEnabled="{Binding IsEnabled}">
                 <TabItem Header=" Tools  ">
                     <Border Padding="30">
@@ -26,55 +45,58 @@
                             <Button     Command="{Binding CreateDataCommand}" Width="99" Height="28" Content="A 轮调单" Canvas.Left="93" Canvas.Top="109"  />
                             <Button     Command="{Binding ImportDataCommand}"  Width="100" Height="30" Content="B 轮调单" Canvas.Left="93" Canvas.Top="190" IsEnabled="{Binding IsMainTableEnabled}"/>
                             <Button     Command="{Binding BuildReportCommand}"  Width="100" Height="30" Content="C 轮调单" Canvas.Left="93" Canvas.Top="276" IsEnabled="{Binding IsMainTableEnabled}"/>
-                            <TextBlock Canvas.Left="502" Canvas.Top="293">
+                            <TextBlock Canvas.Left="502" Canvas.Top="188">
                                 <Hyperlink FontWeight="Bold"  Command="{Binding ExportTypeCBillCommand}">按客服专员分表</Hyperlink>
                             </TextBlock>
                         </Canvas>
 
                     </Border>
                 </TabItem>
-                <TabItem Header=" Settings  ">
-                    <Border Padding="30">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="229*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="40"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="10*"/>
-                            </Grid.RowDefinitions>
-                            <Label Grid.Row="0" Grid.Column="0">人员表:</Label>
-                            <Label Grid.Row="2" Grid.Column="0">部门表:</Label>
-                            <Label Grid.Row="4" Grid.Column="0">绑定表:</Label>
-                            <Label Grid.Row="6" Grid.Column="0">工作目录:</Label>
-                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding MembersFile}"></TextBox>
-                            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding DepartmentsFile}"></TextBox>
-                            <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding RelationFile}"></TextBox>
-                            <TextBox Grid.Row="6" Grid.Column="2" Text="{Binding TargetFile}"></TextBox>
-                            <Button  Grid.Row="0" Grid.Column="4"  Command="{Binding SelectMembersFileCommand}">...</Button>
-                            <Button  Grid.Row="2" Grid.Column="4"  Command="{Binding SelectDepartmentsFileCommand}">...</Button>
-                            <Button  Grid.Row="4" Grid.Column="4"  Command="{Binding SelectRelationFileCommand}">...</Button>
-                            <Button  Grid.Row="6" Grid.Column="4" Command="{Binding SelectTargetFileCommand}">...</Button>
-                            <Button  Grid.Row="0" Grid.Column="6"  Command="{Binding OpenMemberFileCommand}">open</Button>
-                            <Button  Grid.Row="2" Grid.Column="6"  Command="{Binding OpenDepartmentsFileCommand}">open</Button>
-                            <Button  Grid.Row="4" Grid.Column="6"  Command="{Binding OpenRelationFileFileCommand}">open</Button>
-                            <Button  Grid.Row="6" Grid.Column="6"  Command="{Binding OpenWorkPositionCommand}">open</Button>
-                        </Grid>
-                    </Border>
-                </TabItem>
+                
+               
             </TabControl>
+        </Border>
+        <Border Padding="0" Grid.ColumnSpan="2" Grid.Row="2">
+            <chromeTabs:ChromeTabControl IsAddButtonVisible="False" ItemsSource="{Binding ScreenView.View}" >
+               
+                <chromeTabs:ChromeTabControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type chromeTabs:ChromeTabItem}}}">
+
+                            <!--<Border BorderBrush="Orange"
+                                BorderThickness="1">-->
+                            <StackPanel Orientation="Horizontal"
+                                    Background="Transparent">
+                                <Image Source="{Binding TabIcon}"
+                                   Stretch="Fill"
+                                       Margin="5,5,5,5" />
+                                <TextBlock Text="{Binding Title}"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center" />
+                            </StackPanel>
+                            <!--</Border>-->
+
+                            <!--We can implement a context menu for the header here. The ChromeTabItems expose for convenience the following commands, "CloseTabCommand: close the current tab, "CloseAllTabsCommand", and "CloseOtherTabsCommand", which closes all tabs except the current.-->
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Close"
+                                          Command="{Binding Path=PlacementTarget.Tag.CloseTabCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandTarget="{Binding Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    <MenuItem Header="Close all"
+                                          Command="{Binding Path=PlacementTarget.Tag.CloseAllTabsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandTarget="{Binding Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    <MenuItem Header="Close other tabs"
+                                          Command="{Binding Path=PlacementTarget.Tag.CloseOtherTabsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandTarget="{Binding Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          CommandParameter="{Binding}" />
+
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                        </Grid>
+                    </DataTemplate>
+                </chromeTabs:ChromeTabControl.ItemTemplate> 
+            </chromeTabs:ChromeTabControl>
         </Border>
     </Grid>
 </Window>

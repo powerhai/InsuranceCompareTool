@@ -217,9 +217,15 @@ namespace InsuranceCompareTool.Services {
                         break;
                     }
                     case BillSheetColumns.IS_OURS2:
+                    case BillSheetColumns.IS_OURS3:
                     case BillSheetColumns.IS_OURS:
                     {
                         mColIsOurs.Index = col.Index;
+                        break;
+                    }
+                    case BillSheetColumns.STATUS_OF_DJ:
+                    {
+                        mColStatusDj.Index = col.Index;
                         break;
                     }
                 } 
@@ -263,11 +269,20 @@ namespace InsuranceCompareTool.Services {
                 {
                     bill.IsOurs = row.GetCell(mColIsOurs.Index)?.StringCellValue.Trim();
                 }
+
+                if(mColStatusDj.Index >= 0)
+                {
+                    var cell = row.GetCell(mColStatusDj.Index);
+                    if(cell.CellType == CellType.String)
+                    {
+                        bill.StatusOfDj = row.GetCell(mColStatusDj.Index)?.StringCellValue.Trim();
+                    } 
+                }
             }
             catch(Exception ex)
             {
-                Console.WriteLine(ex);
-                throw;
+                Console.WriteLine($"在第{row.RowNum}行出现问题: " + ex );
+                throw new Exception($"在第{ row.RowNum }行出现问题: " + ex.Message);
             }
 
             return bill;
@@ -294,6 +309,7 @@ namespace InsuranceCompareTool.Services {
         private readonly SheetColumn mColAccount = new SheetColumn(){ Title =  BillSheetColumns.CUSTOMER_ACCOUNT};
         private readonly SheetColumn mColMobilePhone = new SheetColumn(){ Title =  BillSheetColumns.MOBILE_PHONE};
         private readonly SheetColumn mColIsOurs = new SheetColumn(){ Title = BillSheetColumns.IS_OURS};
+        private readonly SheetColumn mColStatusDj = new SheetColumn(){Title = BillSheetColumns.STATUS_OF_DJ};
 
     }
 }

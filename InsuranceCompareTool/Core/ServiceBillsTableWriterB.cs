@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using InsuranceCompareTool.Models;
 using InsuranceCompareTool.Services;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
@@ -11,195 +12,7 @@ namespace InsuranceCompareTool.Core {
     public class ServiceBillsTableWriterB
     {
         #region Fields
-
-        public readonly SheetColumn[] ColumnsA =
-        {
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CURRENT_SERVICE_NAME,
-                Index = 0,
-                Width = 2000
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.SELLER_NAME,
-                Index = 1,
-                Width = 2000
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.SELLER_STATE,
-                Index = 2,
-                Width = 700 * 2
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.BILL_ID,
-                Index = 3,
-                Width = 700 * 6
-            },
-
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CUSTOMER_NAME,
-                Index = 4,
-                Width = 700 * 3
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PAY_ADDRESS,
-                Index = 5,
-                Width = 700 * 8,
-
-            },
-
-            new SheetColumn
-            {
-                Title = BillSheetColumns.BILL_PRICE,
-                Index = 6,
-                Width = 2000,
-                Alignment = HorizontalAlignment.Right
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PAY_DATE,
-                Index = 7,
-                Width =2700,
-                Alignment = HorizontalAlignment.Center
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PER_PAY,
-                Index = 8,
-                Width = 1300,
-                Alignment = HorizontalAlignment.Center
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PAY_NO,
-                Index = 9,
-                Width = 1300,
-                Alignment = HorizontalAlignment.Center
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.MOBILE_PHONE,
-                Index = 10,
-                Width = 650 * 5
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CREDITOR,
-                Index = 11,
-                Width = 700 * 3
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CUSTOMER_ACCOUNT,
-                Index = 12,
-                Width = 700 * 7   + 300 ,
-                Alignment = HorizontalAlignment.Left
-            },
-            new SheetColumn()
-            {
-                Title = BillSheetColumns.IS_OURS2,
-                Index = 13,
-                Width = 1000,
-                Alignment = HorizontalAlignment.Center 
-            }
-        };
-        public readonly SheetColumn[] ColumnsB =
-        { 
-           
-            new SheetColumn
-            {
-                Title = BillSheetColumns.SELLER_NAME,
-                Index = 0,
-                Width = 700 * 3
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.SELLER_STATE,
-                Index = 1,
-                Width = 900 * 2
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.BILL_ID,
-                Index = 2,
-                Width = 700 * 6
-            },
-             
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CUSTOMER_NAME,
-                Index = 3,
-                Width = 700 * 3
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PAY_ADDRESS,
-                Index = 4,
-                Width = 1200 * 6,
-
-            },
-             
-            new SheetColumn
-            {
-                Title = BillSheetColumns.BILL_PRICE,
-                Index = 5,
-                Width = 700 * 3,
-                Alignment = HorizontalAlignment.Right
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PAY_DATE,
-                Index = 6,
-                Width =700 * 4,
-                Alignment = HorizontalAlignment.Center
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PER_PAY,
-                Index = 7,
-                Width = 650 * 2,
-                Alignment = HorizontalAlignment.Center
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.PAY_NO,
-                Index = 8,
-                Width = 650 * 2,
-                Alignment = HorizontalAlignment.Center
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.MOBILE_PHONE,
-                Index = 9,
-                Width = 650 * 5
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CREDITOR,
-                Index = 10,
-                Width = 700 * 3
-            },
-            new SheetColumn
-            {
-                Title = BillSheetColumns.CUSTOMER_ACCOUNT,
-                Index = 11,
-                Width = 700 * 7   + 300 ,
-                Alignment = HorizontalAlignment.Left
-            }
-            ,
-            new SheetColumn()
-            {
-                Title = BillSheetColumns.IS_OURS2,
-                Index = 12,
-                Width = 1100,
-                Alignment = HorizontalAlignment.Center
-            }
-        };
+         
         private readonly short DataBackgroundColor = IndexedColors.White.Index;
         private readonly short DataBorderColor = IndexedColors.Grey40Percent.Index;
         private readonly short DataTextColor = IndexedColors.Black.Index;
@@ -234,48 +47,29 @@ namespace InsuranceCompareTool.Core {
 
             return items;
         }
-        public void WriteBills(string name,string title,string area, List<Bill> bills , WriteType writeType  )
+        public void WriteBills(string name,string title,string area, List<Bill> bills ,  SheetTemplate template , string personID)
         {
             try
             {
                 ISheet mSheet = null;
-                var sheets = GetSheets();
-                switch (writeType)
-                {
-                    case WriteType.All:
-                    {
-                        //mSheet.TabColorIndex = ALLTabColor;
-                        break;
-                    }
-                    case WriteType.Virtual:
-                    case WriteType.Seller:
-                    {
-                        //mSheet.TabColorIndex = SellerTabColor;
-                        name = "@ " + name ;
-                        break;
-                    }
-                    case WriteType.Service:
-                    {
-                        //mSheet.TabColorIndex = ServiceTabColor;
-                        break;
-                    }
-                }
-                mSheet =  mWorkbook.CreateSheet(name);
-                
-           
-                SetPrint(mSheet,writeType);
 
-                WritePageTitle(mSheet, $"{DateTime.Now.AddMonths(1).ToString("yyyy年M月")}收费清单 - {area}",  writeType);
-                WriteHeaderRow(mSheet, writeType);
-                SetColumnsStyle(mSheet, writeType);
-                var style = GetRowStyle(mSheet.Workbook, RowType.DataRow);
+                if(mWorkbook.GetSheet(name) != null)
+                {
+                    name = name + "-" + personID;
+                }
+                mSheet =  mWorkbook.CreateSheet(name); 
+                SetPrint(mSheet,template); 
+                WritePageTitle(mSheet, $"{DateTime.Now.AddMonths(1).ToString("yyyy年M月")}收费清单 - {area}",  template);
+                WriteHeaderRow(mSheet, template);
+                var areaNameA = area + "市";
+                var areaNameB = area + "县";
                 foreach (var bill in bills)
-                    WriteBillRow(bill, mSheet, writeType);
-                WriteTitleRow(title, mSheet, writeType);
+                    WriteBillRow(bill, mSheet, template,areaNameA,areaNameB);
+                WriteSumRow(title, mSheet, template);
             }
             catch (Exception e)
             { 
-                throw;
+                throw new Exception($"写入表${name}时产生错误" + e.Message);
             } 
         }
         public void Save(string filename )
@@ -291,172 +85,151 @@ namespace InsuranceCompareTool.Core {
         }
         #endregion
         #region Private or Protect Methods
-        private void SetPrint(ISheet sheet, WriteType writeType)
+        private void SetPrint(ISheet sheet, SheetTemplate template)
         {
             //sheet.Header.Center = $"{DateTime.Now.AddMonths(1).ToString("yyyy年M月")}收费清单";
             sheet.PrintSetup.Landscape = true;
             sheet.PrintSetup.PaperSize = 9;
+
+            #region 设置打印 Fit to all columns on one page. 
+            sheet.FitToPage = true;
+            sheet.Autobreaks = true;
+            sheet.PrintSetup.FitWidth = 1;
+            sheet.PrintSetup.FitHeight = 0; 
+            #endregion
+          
+
             sheet.SetMargin(MarginType.RightMargin, (double)0.2);
             sheet.SetMargin(MarginType.TopMargin, (double)0.2);
             sheet.SetMargin(MarginType.LeftMargin, (double)0.2);
             sheet.SetMargin(MarginType.BottomMargin, (double)0.2);
-            sheet.RepeatingRows = new CellRangeAddress(0, 1, 0, writeType == WriteType.Virtual ?  ColumnsB.Length : ColumnsA.Length);
+            sheet.RepeatingRows = new CellRangeAddress(0, 1, 0, template.HeadRow.Cells.Count);
+
         }
+         
+ 
 
-        private ICellStyle GetRowStyle(IWorkbook book, RowType rowType)
-        {
-            var rowstyle = book.CreateCellStyle();
-            var font = book.CreateFont();
-            rowstyle.FillPattern = FillPattern.SolidForeground;
-            rowstyle.SetFont(font);
-            switch (rowType)
-            {
-                case RowType.PageTitle:
-                {
-                    rowstyle.FillForegroundColor = PageTitleBackgroundColor;
-                    font.FontHeight = 7 * 20 * 2.4;
-                    font.Color = PageTitleTextColor;
-                    font.IsBold = true;
-                    font.FontName = "宋体";
-                    rowstyle.Alignment = HorizontalAlignment.Center;
-                    rowstyle.VerticalAlignment = VerticalAlignment.Center;
-                    break;
-                }
-                case RowType.DocumentTitle:
-                {
-                    rowstyle.FillForegroundColor = DocumentTitleBackgroundColor;
-                    font.FontHeight = 5 * 20 * 2.4;
-                    font.Color = DocumentTitleTextColor;
-                    font.IsBold = false;
-                    break;
-                }
-                case RowType.TableTitle:
-                {
-                    font.FontHeight = 4.5 * 20 * 2.4;
-                    font.Color = TableTitleTextColor;
-                    rowstyle.FillForegroundColor = TableTitleBackgroundColor;
-                    rowstyle.Alignment = HorizontalAlignment.Center;
-                    rowstyle.VerticalAlignment = VerticalAlignment.Center;
-                    rowstyle.WrapText = true;
-                    font.FontName = "宋体";
-                    font.IsBold = true;
-                    break;
-                }
-                case RowType.ProjectTitle:
-                {
-                    font.FontHeight = 6 * 20 * 2.4;
-                    font.Color = ProjectTextColor;
-                    rowstyle.FillForegroundColor = ProjectBackgroundColor;
-                    break;
-                }
-                case RowType.DataRow:
-                {
-                    font.FontHeight = 5 * 18 * 2.4;
-                    font.Color = DataTextColor;
-                    font.FontName = "宋体";
-                    rowstyle.FillForegroundColor = DataBackgroundColor;
-                    //rowstyle.BorderTop = BorderStyle.Thin;
-                    rowstyle.BorderBottom = BorderStyle.Thin;
-                    //rowstyle.BorderLeft = BorderStyle.Thin;
-                    //rowstyle.BorderRight = BorderStyle.Thin;
-                    rowstyle.LeftBorderColor = DataBorderColor;
-                    rowstyle.BottomBorderColor = DataBorderColor;
-                    rowstyle.RightBorderColor = DataBorderColor;
-                    rowstyle.TopBorderColor = DataBorderColor;
-                    rowstyle.WrapText = true;
-                    rowstyle.VerticalAlignment = VerticalAlignment.Center;
-                    
-
-                    break;
-                }
-            }
-
-            return rowstyle;
-        }
-        private void SetColumnsStyle(ISheet sheet, WriteType writeType)
-        {
-            var columns = writeType == WriteType.Virtual ? ColumnsB : ColumnsA;
-            foreach (var col in columns)
-            {
-                var style = GetRowStyle(sheet.Workbook, RowType.DataRow);
-                style.Alignment = col.Alignment;
-                sheet.SetDefaultColumnStyle(col.Index, style);
-            }
-        }
-
-        private void WritePageTitle(ISheet sheet,String title, WriteType writeType)
+        private void WritePageTitle(ISheet sheet,String title,  SheetTemplate template)
         { 
             var row = sheet.CreateRow(0);
-            var style = GetRowStyle(sheet.Workbook, RowType.PageTitle);
-            var columns = writeType == WriteType.Virtual ? ColumnsB : ColumnsA;
-            foreach (var col in columns)
+            
+            foreach (var col in template.HeadRow.Cells)
             {
-                var cell = row.CreateCell(col.Index, CellType.String);
-                sheet.SetColumnWidth(col.Index, col.Width);
-                cell.CellStyle = style;
+                var cell = row.CreateCell(col.ColumnIndex, CellType.String);
+                sheet.SetColumnWidth(col.ColumnIndex, template.Sheet.GetColumnWidth(col.ColumnIndex));
+                cell.CellStyle = sheet.Workbook.CreateCellStyle();
+                cell.CellStyle.CloneStyleFrom(template.TitleRow.GetCell(0).CellStyle);
             }
 
-            row.Height = 200 * 6;
+            row.Height = template.TitleRow.Height;
             row.GetCell(row.FirstCellNum).SetCellValue(title);
             sheet.AddMergedRegion(new CellRangeAddress(row.RowNum, row.RowNum, row.FirstCellNum, row.LastCellNum - 1));
 
 
         }
-        private void WriteBillRow(Bill bill, ISheet sheet, WriteType writeType)
+        private void WriteBillRow(Bill bill, ISheet sheet, SheetTemplate template,string areaNameA, string areaNameB)
         {
             //todo writed by haiser
             if (bill.PayDate > new DateTime(2019, 9, 3))
                 return;
             try
             {
-                var columns = writeType == WriteType.Virtual ? ColumnsB : ColumnsA;
+                
                 var row = sheet.CreateRow(sheet.LastRowNum + 1);
-                foreach (var column in columns)
+                row.RowStyle = sheet.Workbook.CreateCellStyle();
+                row.RowStyle.CloneStyleFrom(template.DataRow.GetCell(0).CellStyle);
+
+                row.Height = template.DataRow.Height;
+                foreach (var column in template.HeadRow.Cells)
                 { 
-                   var cell =  row.CreateCell(column.Index);
-                    var style = sheet.GetColumnStyle(column.Index);
-                    if(style!= null)
-                        cell.CellStyle = style;
-                }
+                    var cell =  row.CreateCell(column.ColumnIndex);
+                    cell.CellStyle = row.RowStyle; 
+                    string cellName = column.StringCellValue;
+                    switch(cellName)
+                    {
+                        case BillSheetColumns.CURRENT_SERVICE_NAME:
+                        { 
+                            cell.SetCellValue(bill.CurrentServiceName??""); 
+                            break;
+                        }
+                        case BillSheetColumns.BILL_ID:
+                        { 
+                            cell.SetCellValue(bill.ID??"");
+                            break;
+                        }
+                        case BillSheetColumns.PAY_NO:
+                        {
+                            cell.SetCellValue(bill.PayNo);
+                            break;
+                        }
+                        case BillSheetColumns.BILL_PRICE:
+                        {
+                            cell.SetCellValue(bill.Price);
+                            break;
+                        }
+                        case BillSheetColumns.CREDITOR:
+                        { 
+                            cell.SetCellValue(bill.Creditor??"");
+                            break;
+                        }
+                        case BillSheetColumns.CUSTOMER_NAME:
+                        { 
+                            cell.SetCellValue(bill.CustomerName??"");
+                            break;
+                        }
+                        case BillSheetColumns.CUSTOMER_ACCOUNT:
+                        {
+                            cell.SetCellValue(bill.CustomerAccount??"");
+                            break;
+                        }
+                        case BillSheetColumns.SELLER_NAME:
+                        {
+                            cell.SetCellValue(bill.SellerName ?? "");
+                            break;
+                        }
+                        case BillSheetColumns.SELLER_STATE:
+                        {
+                            cell.SetCellValue(bill.SellerState ?? "");
+                            break;
+                        }
+                        case BillSheetColumns.MOBILE_PHONE:
+                        {
+                            cell.SetCellValue(bill?.MobilePhone?.Replace("M:", "") ?? ""); 
+                            break;
+                        }
+                        case BillSheetColumns.PER_PAY:
+                        {
+                            cell.SetCellValue(bill.PerPay ?? "");
+                            break;
+                        }
+                        case BillSheetColumns.PAY_ADDRESS:
+                        { 
+                            cell.SetCellValue(bill.PayAddress?.Replace("浙江省", "").Replace("金华市", "").Replace(areaNameA,"").Replace(areaNameB,"")??""); 
+                            break;
+                        }
+                        case BillSheetColumns.IS_OURS:
+                        case BillSheetColumns.IS_OURS2:
+                        { 
+                            cell.SetCellValue(bill.IsOurs??""); 
+                            break;
+                        }
+                        case BillSheetColumns.STATUS_OF_DJ:
+                        {
+                            if(!string.IsNullOrEmpty(bill.StatusOfDj))
+                            {
+                                bill.StatusOfDj = bill.StatusOfDj.Replace("督缴-业务员", "督缴");
+                                cell.SetCellValue(bill.StatusOfDj);
+                            }
 
-                row.Height = 200 * 3;
-                if(writeType != WriteType.Virtual)
-                {
-                    if (!string.IsNullOrEmpty(bill.CurrentServiceName))
-                        row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.CURRENT_SERVICE_NAME)).Index)
-                            .SetCellValue(bill.CurrentServiceName);
-                }
-
-                if (!string.IsNullOrEmpty(bill.ID))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.BILL_ID)).Index)
-                        .SetCellValue(bill.ID);
-                row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PAY_NO)).Index).SetCellValue(bill.PayNo);
-                row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.BILL_PRICE)).Index).SetCellValue(bill.Price);
-                if (!string.IsNullOrEmpty(bill.Creditor))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.CREDITOR)).Index).SetCellValue(bill.Creditor);
-                if (!string.IsNullOrEmpty(bill.CustomerName))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.CUSTOMER_NAME)).Index).SetCellValue(bill.CustomerName);
-                if (!string.IsNullOrEmpty(bill.CustomerAccount))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.CUSTOMER_ACCOUNT)).Index)
-                        .SetCellValue(bill.CustomerAccount);
-                if (!string.IsNullOrEmpty(bill.SellerName))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.SELLER_NAME)).Index)
-                        .SetCellValue(bill.SellerName);
-                if (!string.IsNullOrEmpty(bill.SellerState))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.SELLER_STATE)).Index)
-                        .SetCellValue(bill.SellerState);
-                if (!string.IsNullOrEmpty(bill.MobilePhone))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.MOBILE_PHONE)).Index).SetCellValue(bill.MobilePhone.Replace("M:", ""));
-                if (!string.IsNullOrEmpty(bill.PerPay))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PER_PAY)).Index).SetCellValue(bill.PerPay);
-                if (!string.IsNullOrEmpty(bill.PayAddress))
-                    row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PAY_ADDRESS)).Index)?.SetCellValue(bill.PayAddress.Replace("浙江省","").Replace("金华市",""));
-                if(!string.IsNullOrEmpty(bill.IsOurs))
-                {
-                    row.GetCell(columns.First(a=>a.Title.Equals(BillSheetColumns.IS_OURS2)).Index).SetCellValue(bill.IsOurs);
-                }
-                var payDateCol = row.GetCell(columns.First(a => a.Title.Equals(BillSheetColumns.PAY_DATE)).Index);
-                payDateCol.SetCellValue(bill.PayDate.ToString("yyyy/MM/dd"));
+                            break;
+                        }
+                        case BillSheetColumns.PAY_DATE:
+                        { 
+                            cell.SetCellValue(bill.PayDate.ToString("yyyy/MM/dd")??"");  
+                            break;
+                        }
+                    } 
+                } 
             }
             catch(Exception ex)
             {
@@ -464,33 +237,34 @@ namespace InsuranceCompareTool.Core {
                 throw;
             }
 
-
         }
-        private void WriteHeaderRow(ISheet sheet, WriteType writeType)
+        private void WriteHeaderRow(ISheet sheet, SheetTemplate template)
         {
             var row = sheet.CreateRow(sheet.LastRowNum + 1);
-            var style = GetRowStyle(sheet.Workbook, RowType.TableTitle);
-            var columns = writeType == WriteType.Virtual ? ColumnsB : ColumnsA;
-            foreach (var col in columns)
+            row.Height = template.HeadRow.Height;
+ 
+            foreach (var col in template.HeadRow.Cells)
             {
-                var cell = row.CreateCell(col.Index, CellType.String);
-                cell.CellStyle = style;
-                cell.SetCellValue(col.Title);
+                var cell = row.CreateCell(col.ColumnIndex, CellType.String);
+                cell.CellStyle = sheet.Workbook.CreateCellStyle();
+                cell.CellStyle.CloneStyleFrom(template.HeadRow.GetCell(0).CellStyle);
+                
+                cell.SetCellValue(col.StringCellValue);
+
             }
         }
-        private void WriteTitleRow(string title, ISheet sheet, WriteType writeType)
-        {
+        private void WriteSumRow(string title, ISheet sheet, SheetTemplate template)
+        { 
             var row = sheet.CreateRow(sheet.LastRowNum + 1);
-            var style = GetRowStyle(sheet.Workbook, RowType.DocumentTitle);
-            var columns = writeType == WriteType.Virtual ? ColumnsB : ColumnsA;
-            foreach (var col in columns)
+            var style = template.SumRow.GetCell( template.SumRow.FirstCellNum ).CellStyle;
+          
+            foreach (var col in template.HeadRow.Cells)
             {
-                var cell = row.CreateCell(col.Index, CellType.String);
-                sheet.SetColumnWidth(col.Index, col.Width);
-                cell.CellStyle = style;
+                var cell = row.CreateCell(col.ColumnIndex, CellType.String);
+                cell.CellStyle = sheet.Workbook.CreateCellStyle();
+                cell.CellStyle.CloneStyleFrom(style);
             }
-
-            row.GetCell(row.FirstCellNum).SetCellValue(title);
+            row.GetCell(row.FirstCellNum).SetCellValue(title); 
             sheet.AddMergedRegion(new CellRangeAddress(row.RowNum, row.RowNum, row.FirstCellNum, row.LastCellNum - 1));
         }
         #endregion

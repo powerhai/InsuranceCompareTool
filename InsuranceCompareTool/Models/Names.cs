@@ -48,7 +48,9 @@ namespace InsuranceCompareTool.Models
         public const string CUSTOMER_ACCOUNT = "帐号";
         public const string MOBILE_PHONE = "手机";
         public const string IS_OURS = "是否自保件";
+        public const string IS_OURS3 = "是否为自保件";
         public const string IS_OURS2 = "自保件";
+        public const string STATUS_OF_DJ = "督缴状态";
 
     }
 

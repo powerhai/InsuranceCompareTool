@@ -8,23 +8,27 @@ namespace InsuranceCompareTool.Services
 {
     public class FileNameService
     {
-        private readonly string mWorkPath;
-        public FileNameService(string workPath)
+        private readonly ConfigService mConfigService;
+        public FileNameService(ConfigService configService)
         {
-            mWorkPath = workPath;
+            mConfigService = configService;
         }
 
         public string MainFile
         {
-            get { return $"{mWorkPath}\\{DateTime.Now.AddMonths(1):yyyy-MM}.xlsx"; }
+            get { return $"{mConfigService.TargetFile}\\{DateTime.Now.AddMonths(1):yyyy-MM}.xlsx"; }
         }
         public string MonthPath
         {
-            get { return $"{mWorkPath}\\{DateTime.Now.AddMonths(1):yyyy-MM}"; }
+            get { return $"{mConfigService.TargetFile}\\{DateTime.Now.AddMonths(1):yyyy-MM}"; }
         }
         public string ServicePath
         {
             get { return $"{MonthPath}\\地区收费清单"; }
+        }
+        public string TemplateFile
+        {
+            get { return "template.xlsx"; }
         }
     }
 }

@@ -33,7 +33,8 @@ namespace InsuranceCompareTool.Services
                 var statistics = new ServiceBillsStatisticsWriter();
                 var virServices = new List<Member>();
                 var virSellers = new List<string>();
-                //导出正常的
+                var templateService = ExportTemplateService.CreateInstance();
+                //导出客服专员的----非虚拟工号的客服
                 foreach (var serId in serIds)
                 { 
                     if (string.IsNullOrEmpty(serId))
@@ -57,11 +58,11 @@ namespace InsuranceCompareTool.Services
                     var count = serBills.Count;
                     var sum = serBills.Sum(a => a.Price);
                     var title =  $"{area} - {serId} - {memberName} \t 合计： {count} 单 , 合计保费：{sum} 元";
-                    writer.WriteBills(member?.Name, title,area, serBills, WriteType.Service);
+                    writer.WriteBills(member?.Name, title,area, serBills, templateService.ServiceSheetTemplate, serId);
                     statistics.WriteLine(serId,memberName, count.ToString(),sum.ToString("N") );
                 }
 
-                //导出营销员的 
+                //导出营销员的 - 列出清单标记为YES的营销员
                 var sellers = members.Where(a => a.Area.Equals(area) && a.Reportable == true).Select(a => a.ID).Distinct().ToList();
                 foreach (var sellerId in sellers)
                 {
@@ -72,6 +73,8 @@ namespace InsuranceCompareTool.Services
                     {
                         throw new Exception($"缺少工号为{sellerId}的营销员");
                     }
+
+                    var dataName = "@-" + member.Name;
                     var sellerBills = bills.Where(a => a.SellerID.Equals(sellerId)).OrderBy(a => a.PayDate).ThenBy(a => a.CustomerName).ThenBy(a => a.ID).ToList();
                     if(sellerBills.Count <= 0)
                     {
@@ -80,11 +83,11 @@ namespace InsuranceCompareTool.Services
                     var count = sellerBills.Count;
                     var sum = sellerBills.Sum(a => a.Price);
                     var title = $"{area} - {sellerId} - {member.Name} \t 合计： {count} 单 , 合计保费：{sum} 元";
-                    writer.WriteBills(member?.Name, title,area, sellerBills, WriteType.Seller);
-                    statistics.WriteLine(sellerId, "@" + member.Name,count.ToString(), sum.ToString("N"));
+                    writer.WriteBills(dataName, title,area, sellerBills, templateService.SellerSheetTemplate, sellerId);
+                    statistics.WriteLine(sellerId, dataName,count.ToString(), sum.ToString("N"));
                 }
 
-                //导出虚拟工号的
+                //导出营销员的----客服专员是虚拟工号
                 foreach (var sellerId in virSellers)
                 {
                     if (string.IsNullOrEmpty(sellerId))
@@ -101,10 +104,12 @@ namespace InsuranceCompareTool.Services
                     }
                     var count = sellerBills.Count;
                     var sum = sellerBills.Sum(a => a.Price);
+                    var dataName = "@+" + member.Name;
                     var title = $"{area} - {sellerId} - {member.Name} \t 合计： {sellerBills.Count} 单 , 合计保费：{sellerBills.Sum(a => a.Price)} 元";
-                    writer.WriteBills(member?.Name, title,area, sellerBills, WriteType.Virtual);
-                    statistics.WriteLine(sellerId, "@" + member.Name, count.ToString(), sum.ToString("N"));
+                    writer.WriteBills(dataName, title,area, sellerBills,  templateService.SellerSheetTemplate, sellerId);
+                    statistics.WriteLine(sellerId, dataName, count.ToString(), sum.ToString("N"));
                 }
+
                 //统计虚拟工号的
                 foreach(var ser in virServices)
                 {
@@ -117,7 +122,7 @@ namespace InsuranceCompareTool.Services
                 areaBills = areaBills.OrderBy(a=>a.CurrentServiceName).ThenBy(a => a.PayDate).ThenBy(a => a.CustomerName).ThenBy(a => a.ID).ToList();
                 var fileName = $"{targetPath}\\{area}-{DateTime.Now.AddMonths(1).ToString("yyyy-MM")}.xlsx";
                 var alltitle = $"{area} \t 合计： {areaBills.Count} 单 , 合计保费：{areaBills.Sum(a => a.Price)} 元";
-                writer.WriteBills("总清单", alltitle, area,areaBills, WriteType.All);
+                writer.WriteBills("总清单", alltitle, area,areaBills, templateService.AllSheetTemplate , "");
                 writer.Save(fileName);
                 statistics.WriteLine("", "合计", areaBills.Count.ToString(), areaBills.Sum(a => a.Price).ToString("N"));
                 statistics.Save($"{targetPath}\\{area}-{DateTime.Now.AddMonths(1).ToString("yyyy-MM")}-统计.xlsx");
