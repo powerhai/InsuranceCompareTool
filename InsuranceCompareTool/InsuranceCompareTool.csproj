@@ -159,7 +159,8 @@
     <Content Include="TemplateC.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="mind.xmind" />
+    <None Include="Modeling\mind.xmind" />
+    <None Include="Modeling\sequence.vsdx" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NPOI">
