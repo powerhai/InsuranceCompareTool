@@ -153,6 +153,7 @@
     </EmbeddedResource>
     <None Include="App.config" />
     <None Include="Modeling\classDesign.vsdx" />
+    <None Include="Modeling\investigation.docx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
