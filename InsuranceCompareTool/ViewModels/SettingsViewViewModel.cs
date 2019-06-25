@@ -9,11 +9,12 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Input;
 using InsuranceCompareTool.Models;
+using InsuranceCompareTool.Properties;
 using InsuranceCompareTool.Services;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 namespace InsuranceCompareTool.ViewModels
 {
-	public class SettingsViewViewModel : ViewModelBase
+	public class SettingsViewViewModel : TabViewModelBase
     {
         private readonly ConfigService mConfigService;
         private string mMembersFile;
@@ -31,8 +32,7 @@ namespace InsuranceCompareTool.ViewModels
             set
             {
                 mSourceFile = value;
-                RaisePropertyChanged();
-                UpdateData();
+                RaisePropertyChanged(); 
             }
         }
         public string MembersFile
@@ -41,8 +41,7 @@ namespace InsuranceCompareTool.ViewModels
             set
             {
                 mMembersFile = value;
-                RaisePropertyChanged();
-                UpdateData();
+                RaisePropertyChanged(); 
             }
         }
         public string RelationFile
@@ -50,8 +49,7 @@ namespace InsuranceCompareTool.ViewModels
             get => mRelationFile;
             set
             {
-                SetProperty(ref mRelationFile, value);
-                UpdateData();
+                SetProperty(ref mRelationFile, value); 
             }
         }
         public string TargetFile
@@ -60,8 +58,7 @@ namespace InsuranceCompareTool.ViewModels
             set
             {
                 mTargetFile = value;
-                RaisePropertyChanged();
-                UpdateData();
+                RaisePropertyChanged(); 
             }
         }
 
@@ -71,8 +68,7 @@ namespace InsuranceCompareTool.ViewModels
             get => mTemplateFile;
             set
             {
-                SetProperty(ref mTemplateFile, value);
-                UpdateData();
+                SetProperty(ref mTemplateFile, value); 
             }
         }
         public string DepartmentsFile
@@ -80,8 +76,7 @@ namespace InsuranceCompareTool.ViewModels
             get => mDepartmentsFile;
             set
             {
-                SetProperty(ref mDepartmentsFile, value);
-                UpdateData();
+                SetProperty(ref mDepartmentsFile, value); 
             }
         }
 
@@ -307,31 +302,34 @@ namespace InsuranceCompareTool.ViewModels
                 });
             }
         }
+
         private bool mIsLoaded = false;
         private void LoadData()
         {
+            if(mIsLoaded == true)
+                return;
             this.DepartmentsFile = mConfigService.DepartmentsFile;
             this.MembersFile = mConfigService.MembersFile;
             this.RelationFile = mConfigService.RelationFile;
             this.TemplateFile = mConfigService.TemplateFile;
-            this.TargetFile = mConfigService.TargetFile;
+            this.TargetFile = Settings.Default.WorkPath;
+            this.MembersFile = Settings.Default.MembersFile;
             mIsLoaded = true;
         }
-        private void UpdateData()
+ 
+ 
+        public override void Leave()
         {
-            if(mIsLoaded)
-            {
-                mConfigService.DepartmentsFile = DepartmentsFile;
-                mConfigService.MembersFile = MembersFile;
-                mConfigService.RelationFile = RelationFile;
-                mConfigService.TemplateFile = TemplateFile;
-                mConfigService.TargetFile = TargetFile;
-                SaveData();
-            } 
-        } 
-        private void SaveData()
+            Settings.Default.WorkPath = TargetFile;
+            Settings.Default.MembersFile = MembersFile;
+        }
+        public override void Close()
+        { 
+            Settings.Default.Save();
+        }
+        public override void Enter()
         {
-            mConfigService.Save(); 
-        } 
+            LoadData();
+        }
     } 
 }

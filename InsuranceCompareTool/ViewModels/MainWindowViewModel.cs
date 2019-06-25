@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -17,7 +18,7 @@ using Unity;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 namespace InsuranceCompareTool.ViewModels
 {
-    public class MainWindowViewModel : BindableBase
+    public class MainWindowViewModel : ViewModelBase
     {
         private readonly IUnityContainer mContainer;
         private readonly ConfigService mConfigService;
@@ -34,18 +35,19 @@ namespace InsuranceCompareTool.ViewModels
         private FileNameService mFileNameService;
         private BillExportTypeCService mBillExportTypeCService;
         private ExportTemplateService mExportTemplateService;
- 
-        private string mTitle = "Document Comparing Tool";
- 
+
+        private const string mTitle = "Document Comparing Tool";
+
         private bool mIsMainTableEnabled;
         private string mTemplateFile;
         private CollectionViewSource mScreenView;
+        private ICommand mCloseTabCommand;
         #endregion
         #region Properties
-        public ObservableCollection<ViewModelBase> Views { get; } = new ObservableCollection<ViewModelBase>();
+        public ObservableCollection<TabViewModelBase> Views { get; } = new ObservableCollection<TabViewModelBase>();
         public CollectionViewSource ScreenView
         {
-            get => mScreenView ?? (mScreenView = new CollectionViewSource() { Source = Views}); 
+            get => mScreenView ?? (mScreenView = new CollectionViewSource() { Source = Views });
         }
         public bool IsEnabled
         {
@@ -56,18 +58,18 @@ namespace InsuranceCompareTool.ViewModels
                 RaisePropertyChanged();
             }
         }
-       
-        public string Title
+
+        public override string Title
         {
             get => mTitle;
-            set => SetProperty(ref mTitle, value);
+            set { }
         }
         public bool IsMainTableEnabled
         {
             get => mIsMainTableEnabled;
             set => SetProperty(ref mIsMainTableEnabled, value);
         }
-        
+
         public ICommand GotoSettingsView
         {
             get
@@ -75,7 +77,7 @@ namespace InsuranceCompareTool.ViewModels
                 return new DelegateCommand(() =>
                 {
                     var view = Views.FirstOrDefault(a => a is SettingsViewViewModel);
-                    if(view == null)
+                    if (view == null)
                     {
                         view = mContainer.Resolve<SettingsViewViewModel>();
                         this.Views.Add(view);
@@ -103,17 +105,70 @@ namespace InsuranceCompareTool.ViewModels
             }
         }
 
+        public ICommand AddTabCommand => new DelegateCommand(() =>
+        {
+            this.Views.Add(mContainer.Resolve<AssignViewViewModel>());
+        });
 
-  
+        public ICommand CloseTabCommand
+        {
+            get
+            {
+                if (mCloseTabCommand == null)
+                {
+                    mCloseTabCommand = new DelegateCommand<TabViewModelBase>((p) =>
+                    {
+                        if (p is AssignViewViewModel)
+                        {
+                            this.Views.Remove(p);
+                        }
+                    });
+                }
+                return mCloseTabCommand;
+            }
+        }
+        public ICommand SelectTabCommand
+        {
+            get
+            {
+                return new DelegateCommand<SelectionChangedEventArgs>((o) =>
+               {
+                   if (o.RemovedItems != null && o.RemovedItems.Count > 0)
+                   {
+                       var old = o.RemovedItems[0] as TabViewModelBase;
+                       old?.Leave();
+                   }
 
+                   if (o.AddedItems != null && o.AddedItems.Count > 0)
+                   {
+                       var newd = o.AddedItems[0] as TabViewModelBase;
+                       newd?.Enter();
+                   }
 
-        public ICommand CreateDataCommand => new DelegateCommand(() => {   });
+               });
+            }
+        }
+
+        public ICommand SaveCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+               {
+                   foreach (var view in Views)
+                   {
+                       view.Leave();
+                   }
+               });
+            }
+        }
+        public ICommand CreateDataCommand => new DelegateCommand(() => { });
         public ICommand ImportDataCommand => new DelegateCommand(ImportData);
         public ICommand BuildReportCommand => new DelegateCommand(BuildReportData);
         public ICommand ExportTypeCBillCommand => new DelegateCommand(ExportTypeCBills);
         #endregion
         #region Constructors
-        public MainWindowViewModel( IUnityContainer container, ConfigService configService,FileNameService fileNameService)
+        public MainWindowViewModel(IUnityContainer container, ConfigService configService, FileNameService fileNameService)
         {
             mContainer = container;
             mConfigService = configService;
@@ -127,27 +182,28 @@ namespace InsuranceCompareTool.ViewModels
             mBillMemberService = BillMemberService.CreateInstance();
             mRelationLoadService = RelationLoadService.CreateInstance();
             mBillExportTypeCService = BillExportTypeCService.CreateInstance();
-
+            this.Title = InsuranceCompareTool.Properties.Settings.Default.Projects;
             LoadData();
             LoadScreen();
         }
         private void LoadScreen()
-        {   
-            this.Views.Add(mContainer.Resolve<SettingsViewViewModel>());
+        {
+            this.Views.Add(mContainer.Resolve<AssignViewViewModel>()); 
             this.Views.Add(mContainer.Resolve<PolicyViewViewModel>());
+            this.Views.Add(mContainer.Resolve<SettingsViewViewModel>());
         }
         #endregion
         #region Private or Protect Methods
         private void BuildReportData() { }
-  
+
         private void CheckFiles()
         {
             if (string.IsNullOrEmpty(mConfigService.MembersFile))
                 throw new Exception("亲，请先填写职员数据表");
             if (!File.Exists(mConfigService.MembersFile))
                 throw new Exception("亲，职员数据文件不存在");
-            if(string.IsNullOrEmpty(mConfigService.TemplateFile))
-                throw new Exception("宝贝！请先填写导出模板数据表"); 
+            if (string.IsNullOrEmpty(mConfigService.TemplateFile))
+                throw new Exception("宝贝！请先填写导出模板数据表");
             if (!File.Exists(mConfigService.TemplateFile))
                 throw new Exception("宝贝！导出模板数据表文件不存在");
         }
@@ -155,7 +211,7 @@ namespace InsuranceCompareTool.ViewModels
         {
             try
             {
-                String sourceFile = ""; 
+                String sourceFile = "";
                 CheckFiles();
                 var openFileDialog = new OpenFileDialog
                 {
@@ -167,7 +223,7 @@ namespace InsuranceCompareTool.ViewModels
                 else
                     return;
 
-                
+
                 IsEnabled = false;
                 var t = new Task(() =>
                 {
@@ -175,12 +231,12 @@ namespace InsuranceCompareTool.ViewModels
                     {
                         mExportTemplateService.Load(mConfigService.TemplateFile);
                         mBillLoadService.Load(sourceFile);
-                        mMemberService.Load(mConfigService.MembersFile); 
+                        mMemberService.Load(mConfigService.MembersFile);
                         var bills = mBillLoadService.GetBills();
-                        var members = mMemberService.GetMembers(); 
-                        mBillMemberService.CalculateMembers(bills, members);  
+                        var members = mMemberService.GetMembers();
+                        mBillMemberService.CalculateMembers(bills, members);
                         mBillAreaService.CalculateArea(bills);
-                        mBillExportTypeCService.Export(mFileNameService.ServicePath, bills,members);
+                        mBillExportTypeCService.Export(mFileNameService.ServicePath, bills, members);
                         Process.Start(mFileNameService.ServicePath);
                     }
                     //catch (InvalidOperationException e1)
@@ -207,8 +263,8 @@ namespace InsuranceCompareTool.ViewModels
         private void ImportData() { }
         private void LoadData()
         {
-               
-            mExportTemplateService =   ExportTemplateService.CreateInstance();
+
+            mExportTemplateService = ExportTemplateService.CreateInstance();
             IsMainTableEnabled = File.Exists(mFileNameService.MainFile);
         }
         #endregion

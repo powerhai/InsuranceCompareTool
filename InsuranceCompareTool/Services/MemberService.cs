@@ -12,13 +12,13 @@ namespace InsuranceCompareTool.Services
     public class MemberService
     {
         private static MemberService Singleton = null;
-        private SheetColumn mColID = new SheetColumn() { Title = MemberSheetColumns.ID };
-        private SheetColumn mColName = new SheetColumn() { Title = MemberSheetColumns.NAME };
-        private SheetColumn mColPosition = new SheetColumn() { Title = MemberSheetColumns.POSITION };
-        private SheetColumn mColStatus = new SheetColumn() { Title = MemberSheetColumns.STATUS };
-        private SheetColumn mColArea = new SheetColumn() { Title = MemberSheetColumns.AREA }; 
-        private SheetColumn mColVirtual = new SheetColumn() { Title = MemberSheetColumns.VIRTUAL };
-        private SheetColumn mColReportable = new SheetColumn() { Title = MemberSheetColumns.REPORTABLE };
+        private readonly SheetColumn mColID = new SheetColumn() { Title = MemberSheetColumns.ID };
+        private readonly SheetColumn mColName = new SheetColumn() { Title = MemberSheetColumns.NAME };
+        private readonly SheetColumn mColPosition = new SheetColumn() { Title = MemberSheetColumns.POSITION };
+        private readonly SheetColumn mColStatus = new SheetColumn() { Title = MemberSheetColumns.STATUS };
+        private readonly SheetColumn mColArea = new SheetColumn() { Title = MemberSheetColumns.AREA }; 
+        private readonly SheetColumn mColVirtual = new SheetColumn() { Title = MemberSheetColumns.VIRTUAL };
+        private readonly SheetColumn mColReportable = new SheetColumn() { Title = MemberSheetColumns.REPORTABLE };
 
         public static MemberService CreateInstance()
         {

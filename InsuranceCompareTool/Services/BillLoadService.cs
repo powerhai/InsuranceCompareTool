@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Controls;
 using InsuranceCompareTool.Models;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -22,7 +23,7 @@ namespace InsuranceCompareTool.Services {
             string tempFile = Path.GetTempFileName(); 
             File.Copy(file, tempFile, true);
             IWorkbook excel = new XSSFWorkbook(tempFile);
-
+            
             try
             { 
                 if(excel.NumberOfSheets <= 0)
@@ -31,6 +32,7 @@ namespace InsuranceCompareTool.Services {
                 }
 
                 ISheet sheet = excel.GetSheetAt(0);
+                
                 SheetReader sheetReader = new SheetReader(sheet);
                 var columns = sheetReader.GetColumns();
                 if(columns.Count <= 0)

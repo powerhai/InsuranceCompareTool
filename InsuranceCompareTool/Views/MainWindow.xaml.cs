@@ -1,5 +1,6 @@
 ﻿using System.Windows;
-
+using System.Windows.Controls;
+using InsuranceCompareTool.ViewModels;
 namespace InsuranceCompareTool.Views
 {
     /// <summary>
@@ -12,9 +13,19 @@ namespace InsuranceCompareTool.Views
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        public MainWindowViewModel ViewModel
         {
-
+            get
+            {
+                return this.DataContext as MainWindowViewModel; 
+            }
         }
+    
+
+    private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+         ViewModel.SelectTabCommand.Execute(e);
+    }
+ 
     }
 }

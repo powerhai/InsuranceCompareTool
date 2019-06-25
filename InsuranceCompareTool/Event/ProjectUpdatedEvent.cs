@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InsuranceCompareTool.Dispatch
+namespace InsuranceCompareTool.Event
 {
-    public class BillFilter
+    class ProjectUpdatedEvent
     {
     }
 }

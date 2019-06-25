@@ -6,40 +6,54 @@
         xmlns:views="clr-namespace:InsuranceCompareTool.Views"
         xmlns:chromeTabs="clr-namespace:ChromeTabs;assembly=ChromeTabs"
         xmlns:viewModels="clr-namespace:InsuranceCompareTool.ViewModels"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Title="{Binding Title}" Height="800" Width="837"  Icon="/InsuranceCompareTool;component/sheep.ico" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"  >
+        Title="{Binding Title}" Height="800" Width="1280"  Icon="/InsuranceCompareTool;component/sheep.ico" WindowStartupLocation="CenterScreen"   >
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <i:InvokeCommandAction Command="{Binding SaveCommand}"  />
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Window.Resources>
+
+        <Style TargetType="{x:Type xctk:IconButton}">
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="BorderThickness" Value="0"></Setter>
+            <Setter Property="Width" Value="30"></Setter>
+            <Setter Property="Height" Value="30"></Setter>
+        </Style>
+
         <DataTemplate DataType="{x:Type viewModels:SettingsViewViewModel}">
             <views:SettingsView ></views:SettingsView>
         </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:PolicyViewViewModel}">
             <views:PolicyView ></views:PolicyView>
         </DataTemplate>
-    </Window.Resources>
+
+	    <DataTemplate DataType="{x:Type viewModels:AssignViewViewModel}">
+		    <views:AssignView ></views:AssignView>
+	    </DataTemplate>
+
+	</Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="291*"/>
+            <RowDefinition Height="0"/>
+            <RowDefinition Height="0"/>
             <RowDefinition Height="291*"/>
         </Grid.RowDefinitions> 
-<ToolBar >
+<ToolBar Padding="5">
 
-            <Button Content="Assign" Command="{Binding GotoAssignView}"/>
-    <Button Content="Policy" Command="{Binding GotoPolicyView}"/>
-    <Button Content="Settings" Command="{Binding GotoSettingsView}"/>
+    <Button Content="Assign" Command="{Binding GotoAssignView}" Padding="5"/>
+    <Button Content="Policy" Command="{Binding GotoPolicyView}" Padding="5"/>
+    <Button Content="Settings" Command="{Binding GotoSettingsView}" Padding="5"/>
             <Button/>
         </ToolBar>
         <Border Padding="10" Grid.ColumnSpan="2" Grid.Row="1">
             <TabControl IsEnabled="{Binding IsEnabled}">
                 <TabItem Header=" Tools  ">
-                    <Border Padding="30">
+                    <Border Padding="20">
                         <Border.Background>
-                            <ImageBrush ImageSource="/InsuranceCompareTool;component/flow.png"/>
+                            <ImageBrush ImageSource="/InsuranceCompareTool;component/flow.png" />
                         </Border.Background>
                         <Canvas>
                             <Button     Command="{Binding CreateDataCommand}" Width="99" Height="28" Content="A 轮调单" Canvas.Left="93" Canvas.Top="109"  />
@@ -57,8 +71,10 @@
             </TabControl>
         </Border>
         <Border Padding="0" Grid.ColumnSpan="2" Grid.Row="2">
-            <chromeTabs:ChromeTabControl IsAddButtonVisible="False" ItemsSource="{Binding ScreenView.View}" >
+            <chromeTabs:ChromeTabControl IsAddButtonVisible="False"      SelectionChanged="Selector_OnSelectionChanged"  ItemsSource="{Binding ScreenView.View}"   AddTabCommand="{Binding AddTabCommand}"  CloseTabCommand="{Binding CloseTabCommand2}" >
                
+      
+
                 <chromeTabs:ChromeTabControl.ItemTemplate>
                     <DataTemplate>
                         <Grid Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type chromeTabs:ChromeTabItem}}}">

@@ -52,6 +52,13 @@ namespace InsuranceCompareTool.Models
         public const string IS_OURS2 = "自保件";
         public const string STATUS_OF_DJ = "督缴状态";
 
+        public const string ASSIGNED_SERVICE_ID = "改派后专员工号";
+        public const string ASSIGNED_SERVICE_NAME = "改派后专员姓名";
+        public const string SYS_SERVICE_STATUS = "客服专员状态";
+
+        public const string SYS_FILTER = "System_Filter";
+        public const string SYS_FINISHED = "System_Finished";
+        public const string SYS_HISTORY = "System_History";
     }
 
     public static class MemberSheetColumns

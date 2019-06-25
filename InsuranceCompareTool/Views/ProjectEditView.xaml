@@ -1,0 +1,297 @@
+﻿<UserControl x:Class="InsuranceCompareTool.Views.ProjectEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:prism="http://prismlibrary.com/"             
+             prism:ViewModelLocator.AutoWireViewModel="True"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"   
+             xmlns:dispatch="clr-namespace:InsuranceCompareTool.Models.Dispatch"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:domain="clr-namespace:InsuranceCompareTool.Domain"
+             mc:Ignorable="d"   d:DesignHeight="450" d:DesignWidth="800" Padding="10"  
+			 x:Name="Root"
+             >
+
+	<UserControl.Resources>
+
+
+
+		<ObjectDataProvider x:Key="NameBoolType" MethodName="GetNames" ObjectType="{x:Type sys:Enum}">
+			<ObjectDataProvider.MethodParameters>
+				<x:Type TypeName="domain:BoolType"/>
+			</ObjectDataProvider.MethodParameters>
+		</ObjectDataProvider>
+		<ObjectDataProvider x:Key="ValueBoolType" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+			<ObjectDataProvider.MethodParameters>
+				<x:Type TypeName="domain:BoolType"/>
+			</ObjectDataProvider.MethodParameters>
+		</ObjectDataProvider>
+
+
+		<Style   TargetType="{x:Type ListViewItem}">
+			<Setter Property="Padding" Value="20"></Setter>
+			<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+			<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+
+		</Style>
+
+
+		<Style TargetType="{x:Type xctk:IconButton}">
+			<Setter Property="Background" Value="Transparent"></Setter>
+			<Setter Property="BorderThickness" Value="0"></Setter>
+			<Setter Property="Width" Value="25"></Setter>
+			<Setter Property="Height" Value="25"></Setter>
+		</Style>
+
+		<ControlTemplate TargetType="{x:Type ListBoxItem}" x:Key="EditStep">
+			<Border  Padding="{TemplateBinding Padding}" Margin="{TemplateBinding Margin}" BorderThickness="{TemplateBinding BorderThickness}"  BorderBrush="#FF19B2F9" Background="#FFDCFAFF">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="30"></ColumnDefinition>
+						<ColumnDefinition Width="5"></ColumnDefinition>
+						<ColumnDefinition Width="1*"></ColumnDefinition>
+						<ColumnDefinition Width="5"></ColumnDefinition>
+						<ColumnDefinition Width="Auto"></ColumnDefinition>
+						<ColumnDefinition Width="5"></ColumnDefinition>
+						<ColumnDefinition Width="Auto"></ColumnDefinition>
+						<ColumnDefinition Width="5"></ColumnDefinition>
+						<ColumnDefinition Width="Auto"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Image Source="{StaticResource IconFootSelected}" ></Image>
+					<Label  Content="{Binding Index}" Margin="9,6,0,0" FontWeight="Bold" ></Label>
+					<TextBox Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" Grid.Column="2"  />
+
+
+					<xctk:IconButton Grid.Column="4" Command="{Binding ElementName=Root, Path=DataContext.UpStepCommand}" CommandParameter="{Binding .}">
+						<xctk:IconButton.Icon>
+							<Image Source="{StaticResource IconUp}" />
+						</xctk:IconButton.Icon>
+					</xctk:IconButton>
+
+					<xctk:IconButton Grid.Column="6" Command="{Binding ElementName=Root, Path=DataContext.DownStepCommand}" CommandParameter="{Binding .}">
+						<xctk:IconButton.Icon>
+							<Image Source="{StaticResource IconDown}" />
+						</xctk:IconButton.Icon>
+					</xctk:IconButton>
+
+					<xctk:IconButton Grid.Column="8" Command="{Binding ElementName=Root, Path=DataContext.DelStepCommand}" CommandParameter="{Binding .}">
+						<xctk:IconButton.Icon>
+							<Image Source="{StaticResource IconDel}" />
+						</xctk:IconButton.Icon>
+					</xctk:IconButton>
+				</Grid>
+
+			</Border>
+		</ControlTemplate>
+		<ControlTemplate TargetType="{x:Type ListBoxItem}" x:Key="NormalStep">
+			<Border   Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" Margin="{TemplateBinding Margin}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="#FFCCE7FD">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="30"></ColumnDefinition>
+						<ColumnDefinition Width="5"></ColumnDefinition>
+						<ColumnDefinition Width="1*"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Image Source="{StaticResource IconFoot}"></Image>
+					<Label Content="{Binding Index}"  Margin="9,6,0,0" FontWeight="Bold"></Label>
+					<TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" Grid.Column="2"  />
+				</Grid>
+
+			</Border>
+		</ControlTemplate>
+	</UserControl.Resources>
+
+
+	<Border Padding="10">
+
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1.5*"></ColumnDefinition>
+				<ColumnDefinition Width="10"></ColumnDefinition>
+				<ColumnDefinition Width="2*"></ColumnDefinition>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+
+				<RowDefinition Height="30"></RowDefinition>
+				<RowDefinition Height="10"></RowDefinition>
+				<RowDefinition Height="1*"></RowDefinition>
+				<RowDefinition Height="5"></RowDefinition>
+				<RowDefinition Height="Auto"></RowDefinition>
+				<RowDefinition Height="10"></RowDefinition>
+				<RowDefinition Height="45"></RowDefinition>
+			</Grid.RowDefinitions>
+			<Grid Grid.Row="0" Grid.ColumnSpan="3">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto "/>
+					<ColumnDefinition Width="10"/>
+					<ColumnDefinition Width="644*"/>
+				</Grid.ColumnDefinitions>
+				<Label>分单方案名称：</Label>
+				<TextBox Grid.Column="2" Text="{Binding Project.Title}"></TextBox>
+			</Grid>
+			<GroupBox Header="分单步骤" Grid.Row="2" Grid.RowSpan="3" Padding="5">
+				<Grid>
+
+
+					<ListBox ItemsSource="{Binding Project.StepView.View}" IsSynchronizedWithCurrentItem="True" BorderThickness="0"   >
+						<ListBox.ItemContainerStyle>
+							<Style TargetType="{x:Type ListBoxItem}">
+								<Setter Property="Margin" Value="2" />
+								<Setter Property="Padding" Value="8" />
+								<Style.Triggers>
+									<Trigger Property="IsSelected" Value="True">
+										<Setter Property="Template" Value="{StaticResource EditStep}" />
+										<Setter Property="Foreground" Value="Red"></Setter>
+									</Trigger>
+									<Trigger Property="IsSelected" Value="False">
+										<Setter Property="Template" Value="{StaticResource NormalStep}" />
+									</Trigger>
+								</Style.Triggers>
+							</Style>
+						</ListBox.ItemContainerStyle>
+
+					</ListBox>
+					<xctk:IconButton   Command="{Binding AddStepCommand}" VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="35" Width="35" Margin="2">
+						<xctk:IconButton.Icon>
+							<Image Source="{StaticResource IconAdd}" />
+						</xctk:IconButton.Icon>
+					</xctk:IconButton>
+				</Grid>
+			</GroupBox>
+			<GroupBox  Header="过滤" Grid.Column="2" Grid.Row="2" Padding="5" IsEnabled="{Binding ElementName=DispatchBox,Path=IsEnabled}">
+				 
+				<Grid>
+					<ListView ItemsSource="{Binding Project.StepView.View.CurrentItem.Filters}">
+
+
+						<ListView.View>
+							<GridView>
+								<GridView.Columns>
+									<GridViewColumn Header="关系"   Width="80">
+										<GridViewColumn.CellTemplate>
+											<DataTemplate>
+												<ComboBox ItemsSource="{Binding ElementName=Root,Path=DataContext.BoolTypeList}" SelectedValue="{Binding BoolType}"  SelectedValuePath="Enum" DisplayMemberPath="Title"></ComboBox>
+											</DataTemplate>
+										</GridViewColumn.CellTemplate>
+									</GridViewColumn>
+									<GridViewColumn Header="列"  Width="180">
+										<GridViewColumn.CellTemplate>
+											<DataTemplate>
+												<ComboBox ItemsSource="{Binding ElementName=Root,Path=DataContext.ColumnTypes}"  DisplayMemberPath="Title" SelectedValue="{Binding Column}" SelectedValuePath="Enum" ></ComboBox>
+											</DataTemplate>
+										</GridViewColumn.CellTemplate>
+									</GridViewColumn>
+									<GridViewColumn Header="运算符"  Width="70">
+										<GridViewColumn.CellTemplate>
+											<DataTemplate>
+												<ComboBox x:Name="box"     DisplayMemberPath="Title" SelectedValuePath="Enum" SelectedValue="{Binding OperatorType}" >
+													<ComboBox.Style>
+														<Style TargetType="ComboBox">
+															<Style.Triggers>
+																<DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.String}">
+																	<Setter   Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorTypes}"></Setter>
+																</DataTrigger>
+																<DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.Number}">
+																	<Setter  Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorTypesForNumber}"></Setter>
+																</DataTrigger>
+															</Style.Triggers>
+														</Style>
+													</ComboBox.Style>
+												</ComboBox>
+
+											</DataTemplate>
+										</GridViewColumn.CellTemplate>
+									</GridViewColumn>
+									<GridViewColumn Header="值"   Width="100">
+										<GridViewColumn.CellTemplate>
+											<DataTemplate>
+												<TextBox Text="{Binding Value}"></TextBox>
+											</DataTemplate>
+										</GridViewColumn.CellTemplate>
+									</GridViewColumn>
+									<GridViewColumn Header="" Width="40">
+										<GridViewColumn.CellTemplate>
+											<DataTemplate>
+												<xctk:IconButton Grid.Column="8" Command="{Binding ElementName=Root, Path=DataContext.DelFilterCommand}" CommandParameter="{Binding .}" >
+													<xctk:IconButton.Icon>
+														<Image Source="{StaticResource IconDel}" />
+													</xctk:IconButton.Icon>
+												</xctk:IconButton>
+											</DataTemplate>
+										</GridViewColumn.CellTemplate>
+									</GridViewColumn>
+								</GridView.Columns>
+							</GridView>
+						</ListView.View>
+					</ListView>
+					<xctk:IconButton   Command="{Binding AddFilterCommand}" VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="35" Width="35" Margin="10">
+						<xctk:IconButton.Icon>
+							<Image Source="{StaticResource IconAdd}" />
+						</xctk:IconButton.Icon>
+					</xctk:IconButton>
+				</Grid>
+			</GroupBox>
+			<GroupBox x:Name="DispatchBox"  Header="分配器" Grid.Column="2" Grid.Row="4"  DataContext="{Binding Project.StepView.View.CurrentItem}" Padding="10">
+				<GroupBox.Style>
+					<Style TargetType="{x:Type GroupBox}">
+						<Style.Triggers>
+							<DataTrigger Binding="{Binding .}" Value="{x:Null}">
+								<Setter Property="IsEnabled" Value="False"></Setter>
+							</DataTrigger>
+						</Style.Triggers> 
+					</Style>
+				</GroupBox.Style>
+
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="1*"/>
+						<RowDefinition Height="10"/>
+						<RowDefinition Height="1*"/>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="100"/>
+						<ColumnDefinition Width="10"/>
+						<ColumnDefinition Width="1*"/>
+					</Grid.ColumnDefinitions>
+
+					<Label Grid.Row="0" Grid.Column="0" >分配对象：</Label>
+					<ComboBox Grid.Column="2" Grid.Row="0" SelectedValue="{Binding DispatchType}" ItemsSource="{Binding ElementName=Root,Path=DataContext.DispatchTypes}" DisplayMemberPath="Title" SelectedValuePath="Enum"></ComboBox>
+
+					<Label Grid.Row="2" Grid.Column="0" Content="指定人员-工号" IsEnabled="{Binding ElementName=Text_Designated, Path=IsEnabled}">
+						 
+					</Label>
+					<TextBox x:Name="Text_Designated"  Grid.Row="2" Grid.Column="2" Text="{Binding DispatchDesignated}">
+						<TextBox.Style>
+							<Style TargetType="{x:Type TextBox}">
+								<Setter Property="IsEnabled" Value="False"></Setter>  
+								<Style.Triggers>
+									<DataTrigger Binding="{Binding DispatchType}" Value="{x:Static domain:DispatchType.DispatchToDesignated}">
+										<Setter Property="IsEnabled" Value="True"></Setter> 
+										
+									</DataTrigger>
+								</Style.Triggers>
+							</Style>
+
+						</TextBox.Style>
+					</TextBox>
+
+				</Grid>
+			</GroupBox>
+
+			<Border Padding="5" Grid.Row="6"  Grid.ColumnSpan="3">
+				<Border.Background>
+					<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+				</Border.Background>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="1*" />
+						<ColumnDefinition Width="70" />
+						<ColumnDefinition Width="10" />
+						<ColumnDefinition Width="70" />
+					</Grid.ColumnDefinitions>
+					<Button Grid.Column="1" Command="{Binding CancelCommand}">取消</Button>
+					<Button Grid.Column="3" Command="{Binding SaveCommand}">保存</Button>
+				</Grid>
+			</Border>
+		</Grid>
+	</Border>
+</UserControl>

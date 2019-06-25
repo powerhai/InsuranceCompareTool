@@ -1,9 +1,140 @@
 ﻿<UserControl x:Class="InsuranceCompareTool.Views.PolicyView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:prism="http://prismlibrary.com/"             
-             prism:ViewModelLocator.AutoWireViewModel="True">
-    <Grid>
-            
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:prism="http://prismlibrary.com/"
+xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+xmlns:dispatch="clr-namespace:InsuranceCompareTool.Models.Dispatch"
+xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:views="clr-namespace:InsuranceCompareTool.Views"
+             mc:Ignorable="d" 
+x:Name="Root"
+prism:ViewModelLocator.AutoWireViewModel="True" d:DesignHeight="450" d:DesignWidth="800" Padding="10">
+    <i:Interaction.Triggers>
+        <prism:InteractionRequestTrigger SourceObject="{Binding EditProjectNotification}">
+            <prism:PopupWindowAction IsModal="True" CenterOverAssociatedObject="True"  WindowStartupLocation="CenterOwner" >
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="{x:Type Window}">
+                        <Setter Property="Width" Value="1000"></Setter>
+                        <Setter Property="Height" Value="600"></Setter>
+                        <Setter Property="ShowInTaskbar" Value="False"></Setter>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:ProjectEditView></views:ProjectEditView>
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+    </i:Interaction.Triggers>
+    <UserControl.Resources>
+        <ControlTemplate TargetType="{x:Type ListBoxItem}" x:Key="Edit">
+            <Border Height="65" Padding="{TemplateBinding Padding}" Margin="{TemplateBinding Margin}" BorderThickness="{TemplateBinding BorderThickness}"  BorderBrush="#FF19B2F9" Background="#FFDCFAFF">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+	                    <ColumnDefinition Width="10"></ColumnDefinition>
+	                    <ColumnDefinition Width="30"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+                    <Image Source="{StaticResource IconFlowerSelected}"></Image>
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" Grid.Column="2" FontWeight="Bold" Foreground="#FF33D2F5" />
+
+
+                    <xctk:IconButton Grid.Column="3" Command="{Binding ElementName=Root, Path=DataContext.UpCommand}" CommandParameter="{Binding .}" ToolTip="上移一行">
+                        <xctk:IconButton.Icon>
+                            <Image Source="{StaticResource IconUp}" />
+                        </xctk:IconButton.Icon>
+                    </xctk:IconButton>
+
+                    <xctk:IconButton Grid.Column="5" Command="{Binding ElementName=Root, Path=DataContext.DownCommand}" CommandParameter="{Binding .}" ToolTip="下移一行">
+                        <xctk:IconButton.Icon>
+                            <Image Source="{StaticResource IconDown}" />
+                        </xctk:IconButton.Icon>
+                    </xctk:IconButton>
+                    <xctk:IconButton Grid.Column="7" Command="{Binding ElementName=Root, Path=DataContext.EditCommand}" CommandParameter="{Binding .}" ToolTip="编辑">
+                        <xctk:IconButton.Icon>
+                            <Image Source="{StaticResource IconEdit}" />
+                        </xctk:IconButton.Icon>
+                    </xctk:IconButton>
+
+	                <xctk:IconButton Grid.Column="9" Command="{Binding ElementName=Root, Path=DataContext.CopyCommand}" CommandParameter="{Binding .}" ToolTip="拷贝">
+		                <xctk:IconButton.Icon>
+			                <Image Source="{StaticResource IconCopy}" />
+		                </xctk:IconButton.Icon>
+	                </xctk:IconButton>
+
+
+					<xctk:IconButton Grid.Column="11" Command="{Binding ElementName=Root, Path=DataContext.DelCommand}" CommandParameter="{Binding .}" ToolTip="删除">
+                        <xctk:IconButton.Icon>
+                            <Image Source="{StaticResource IconDel}" />
+                        </xctk:IconButton.Icon>
+                    </xctk:IconButton>
+                </Grid>
+            </Border>
+        </ControlTemplate>
+        <ControlTemplate TargetType="{x:Type ListBoxItem}" x:Key="Normal">
+            <Border Height="65" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" Margin="{TemplateBinding Margin}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="#FFCCE7FD">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+<ColumnDefinition Width="1*"></ColumnDefinition> 
+                    </Grid.ColumnDefinitions>
+                    <Image Source="{StaticResource IconFlower}"></Image> 
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" Grid.Column="2"  />
+                </Grid>
+
+            </Border>
+        </ControlTemplate>
+    </UserControl.Resources>
+
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="17*" /> 
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+
+            <GroupBox Header="分单方案" Padding="10">
+
+                <ListBox ItemsSource="{Binding ProjectView}" BorderBrush="{x:Null}">
+ 
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Margin" Value="5,5" />
+                            <Setter Property="Padding" Value="10" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Template" Value="{StaticResource Edit}" />
+                                    <Setter Property="Foreground" Value="Red"></Setter>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="False">
+                                    <Setter Property="Template" Value="{StaticResource Normal}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+
+            </GroupBox>
+
+	        <xctk:IconButton   Command="{Binding AddCommand}" VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="40" Width="40" Margin="10">
+		        <xctk:IconButton.Icon>
+			        <Image Source="{StaticResource IconAdd}" />
+		        </xctk:IconButton.Icon>
+	        </xctk:IconButton>
+
+		</Grid>
+ 
+
     </Grid>
 </UserControl>
