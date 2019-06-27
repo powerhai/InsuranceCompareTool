@@ -72,6 +72,7 @@
     <Compile Include="Domain\ColumnType.cs" />
     <Compile Include="Domain\OperatorType.cs" />
     <Compile Include="Domain\ColumnDataType.cs" />
+    <Compile Include="Modeling\Class1.cs" />
     <Compile Include="Models\Dispatch\Project.cs" />
     <Compile Include="Models\ViewModelBase.cs" />
     <Compile Include="Services\BillLoadHelper.cs" />
