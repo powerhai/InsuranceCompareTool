@@ -136,7 +136,8 @@ namespace InsuranceCompareTool.ViewModels
 
                 foreach (DataRow row in DataTable.Rows)
                 {
-                    if (!row.IsNull("本期应缴保费"))
+                    
+                    if (row.Table.Columns.Contains("本期应缴保费"))
                     {
                         double bf = 0;
                         double.TryParse((string)row["本期应缴保费"], out bf);
@@ -379,7 +380,9 @@ namespace InsuranceCompareTool.ViewModels
               this.ProjectView.View.MoveCurrentToFirst();
         }
         private async Task LoadMembers()
-        { 
+        {
+            if (string.IsNullOrEmpty(Settings.Default.MembersFile))
+                return;
             FileInfo fi = new FileInfo(Settings.Default.MembersFile);
             if(!fi.Exists)
                 return;

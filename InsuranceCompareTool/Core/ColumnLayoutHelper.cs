@@ -31,6 +31,8 @@ namespace InsuranceCompareTool.Core
         public List<Project> GetProjects()
         {
             var list = new List<Project>();
+            if (string.IsNullOrEmpty(Settings.Default.Projects))
+                return list;
             using (MemoryStream ms = new MemoryStream())
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(Settings.Default.Projects);

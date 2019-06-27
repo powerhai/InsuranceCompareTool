@@ -158,7 +158,7 @@ namespace InsuranceCompareTool.ViewModels
                {
                    foreach (var view in Views)
                    {
-                       view.Leave();
+                       view.Close();
                    }
                });
             }
