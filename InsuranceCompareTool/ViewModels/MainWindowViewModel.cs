@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
 using InsuranceCompareTool.Models;
+using InsuranceCompareTool.Properties;
 using InsuranceCompareTool.Services;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -162,7 +163,7 @@ namespace InsuranceCompareTool.ViewModels
                });
             }
         }
-        public ICommand CreateDataCommand => new DelegateCommand(() => { });
+    
         public ICommand ImportDataCommand => new DelegateCommand(ImportData);
         public ICommand BuildReportCommand => new DelegateCommand(BuildReportData);
         public ICommand ExportTypeCBillCommand => new DelegateCommand(ExportTypeCBills);
@@ -198,13 +199,13 @@ namespace InsuranceCompareTool.ViewModels
 
         private void CheckFiles()
         {
-            if (string.IsNullOrEmpty(mConfigService.MembersFile))
+            if (string.IsNullOrEmpty(Settings.Default.MembersFile))
                 throw new Exception("亲，请先填写职员数据表");
-            if (!File.Exists(mConfigService.MembersFile))
+            if (!File.Exists(Settings.Default.MembersFile))
                 throw new Exception("亲，职员数据文件不存在");
-            if (string.IsNullOrEmpty(mConfigService.TemplateFile))
+            if (string.IsNullOrEmpty(Settings.Default.TemplateFile))
                 throw new Exception("宝贝！请先填写导出模板数据表");
-            if (!File.Exists(mConfigService.TemplateFile))
+            if (!File.Exists(Settings.Default.TemplateFile))
                 throw new Exception("宝贝！导出模板数据表文件不存在");
         }
         private void ExportTypeCBills()
@@ -229,9 +230,9 @@ namespace InsuranceCompareTool.ViewModels
                 {
                     try
                     {
-                        mExportTemplateService.Load(mConfigService.TemplateFile);
+                        mExportTemplateService.Load(Settings.Default.TemplateFile);
                         mBillLoadService.Load(sourceFile);
-                        mMemberService.Load(mConfigService.MembersFile);
+                        mMemberService.Load(Settings.Default.MembersFile);
                         var bills = mBillLoadService.GetBills();
                         var members = mMemberService.GetMembers();
                         mBillMemberService.CalculateMembers(bills, members);

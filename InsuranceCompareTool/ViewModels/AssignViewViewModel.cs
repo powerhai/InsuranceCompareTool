@@ -49,6 +49,7 @@ namespace InsuranceCompareTool.ViewModels
         private List<string> mAreas = new List<string>(){AreaNames.JH, AreaNames.YK, AreaNames.YW, AreaNames.WY, AreaNames.PJ, AreaNames.LX, AreaNames.QT, AreaNames.DY};
         private CollectionViewSource mAreaView;
         private ObservableCollection<Member> mMembers = new ObservableCollection<Member>();
+        private CollectionViewSource mProjectView;
         #endregion
         #region Properties
         public List<string> Areas
@@ -177,7 +178,18 @@ namespace InsuranceCompareTool.ViewModels
             }
         }
 
-        public CollectionViewSource ProjectView => new CollectionViewSource() { Source = mProjects };
+        public CollectionViewSource ProjectView
+        {
+            get
+            {
+                if(mProjectView == null)
+                {
+                    mProjectView = new CollectionViewSource() { Source = mProjects };
+                }
+
+                return mProjectView;
+            }
+        }
         #endregion
         #region Methods
         private bool FilterMember(object obj)
@@ -214,56 +226,6 @@ namespace InsuranceCompareTool.ViewModels
             if (mLastLayout == null || Columns == null)
                 return;
             mLastLayout.Columns = this.Columns.Where(a => a.IsVisible == true).Select(a => a.Name).ToArray();
-        }
-        private void LoadLayout()
-        {
-            var layouts = mColumnLayoutHelper.GetColumnLayouts();
-
-            foreach (var layout in layouts)
-            {
-                if (!mColumnLayouts.Select(a => a.Guid).Contains(layout.Guid))
-                {
-                    this.mColumnLayouts.Add(layout);
-                }
-                else
-                {
-                    var lay = mColumnLayouts.FirstOrDefault(a => a.Guid.Equals(layout.Guid));
-                    lay.Columns = layout.Columns;
-
-                }
-
-                var cur = LayoutView.View.CurrentItem as ColumnVisible;
-                if (cur == null)
-                {
-                    continue;
-                }
-
-                if (Columns == null)
-                    continue;
-
-                foreach (var col in Columns)
-                {
-                    col.IsVisible = cur.Columns.Contains(col.Name);
-                }
-            }
-
-            foreach (var col in mColumnLayouts.ToArray())
-            {
-                if (!layouts.Select(a => a.Guid).Contains(col.Guid))
-                {
-                    mColumnLayouts.Remove(col);
-                }
-            }
-
-            if (mColumnLayouts.Count <= 0)
-            {
-                var lay = new ColumnVisible()
-                {
-                    Title = "可视布局 1",
-                    Guid = Guid.NewGuid()
-                };
-                mColumnLayouts.Add(lay);
-            }
         }
         private void GenerateFilters(Project project)
         {
@@ -352,16 +314,69 @@ namespace InsuranceCompareTool.ViewModels
             this.LoadProjects();
             IsBusy = false;
         }
+        private void LoadLayout()
+        {
+            var layouts = mColumnLayoutHelper.GetColumnLayouts();
+
+            foreach (var layout in layouts)
+            {
+                if (!mColumnLayouts.Select(a => a.Guid).Contains(layout.Guid))
+                {
+                    this.mColumnLayouts.Add(layout);
+                }
+                else
+                {
+                    var lay = mColumnLayouts.FirstOrDefault(a => a.Guid.Equals(layout.Guid));
+                    lay.Columns = layout.Columns;
+
+                }
+
+                var cur = LayoutView.View.CurrentItem as ColumnVisible;
+                if (cur == null)
+                {
+                    continue;
+                }
+
+                if (Columns == null)
+                    continue;
+
+                foreach (var col in Columns)
+                {
+                    col.IsVisible = cur.Columns.Contains(col.Name);
+                }
+            }
+
+            foreach (var col in mColumnLayouts.ToArray())
+            {
+                if (!layouts.Select(a => a.Guid).Contains(col.Guid))
+                {
+                    mColumnLayouts.Remove(col);
+                }
+            }
+
+            if (mColumnLayouts.Count <= 0)
+            {
+                var lay = new ColumnVisible()
+                {
+                    Title = "可视布局 1",
+                    Guid = Guid.NewGuid()
+                };
+                mColumnLayouts.Add(lay);
+            }
+
+            this.LayoutView.View.MoveCurrentToFirst();
+        }
         private void LoadProjects()
         {
             this.Projects.Clear();
             var list = mProjectCacheHelper.GetProjects();
+          
             foreach (var project in list)
             {
                 this.Projects.Add(project);
             }
 
-            this.ProjectView.View.MoveCurrentToFirst();
+              this.ProjectView.View.MoveCurrentToFirst();
         }
         private async Task LoadMembers()
         { 

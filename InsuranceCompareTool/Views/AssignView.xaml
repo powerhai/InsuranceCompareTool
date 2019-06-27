@@ -13,6 +13,7 @@
     <Border Padding="10">
 
         <Grid>
+        
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="10"></RowDefinition>
@@ -183,7 +184,7 @@
 
                 </TextBlock>
 
-                <ToggleButton IsChecked="True" x:Name="ShowLeft"    Grid.Column="1" Height="30" Width="30" Margin="-30" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False"  BorderThickness="0" Background="Transparent"  >
+                <ToggleButton IsChecked="False" x:Name="ShowLeft"    Grid.Column="1" Height="30" Width="30" Margin="-30" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False"  BorderThickness="0" Background="Transparent"  >
                     <ToggleButton.ContentTemplate>
                         <DataTemplate>
                             <Image x:Name="Image" Source="{StaticResource LeftAndRight}"></Image>
@@ -228,7 +229,7 @@
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
                         <Button Command="{Binding ExportDCommand}"  Content="导出 - 上传系统" Grid.Column="0"></Button>
-                        <Button Command="{Binding LoadBillCommand}" Content="导出 - 下发机构" Grid.Column="2"></Button>
+                        <Button Command="{Binding ExportCCommand}" Content="导出 - 下发机构" Grid.Column="2"></Button>
                     </Grid>
 
                 </GroupBox>

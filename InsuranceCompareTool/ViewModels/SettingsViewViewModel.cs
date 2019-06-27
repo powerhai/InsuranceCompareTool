@@ -311,7 +311,7 @@ namespace InsuranceCompareTool.ViewModels
             this.DepartmentsFile = mConfigService.DepartmentsFile;
             this.MembersFile = mConfigService.MembersFile;
             this.RelationFile = mConfigService.RelationFile;
-            this.TemplateFile = mConfigService.TemplateFile;
+            this.TemplateFile = Settings.Default.TemplateFile;
             this.TargetFile = Settings.Default.WorkPath;
             this.MembersFile = Settings.Default.MembersFile;
             mIsLoaded = true;
@@ -320,8 +320,11 @@ namespace InsuranceCompareTool.ViewModels
  
         public override void Leave()
         {
+            if (mIsLoaded == false)
+                return;
             Settings.Default.WorkPath = TargetFile;
             Settings.Default.MembersFile = MembersFile;
+            Settings.Default.TemplateFile = TemplateFile;
         }
         public override void Close()
         { 

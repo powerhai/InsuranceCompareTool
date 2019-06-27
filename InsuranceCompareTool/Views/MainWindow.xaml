@@ -37,7 +37,7 @@
 	</Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="0"/>
             <RowDefinition Height="291*"/>
         </Grid.RowDefinitions> 
@@ -45,7 +45,7 @@
 
     <Button Content="Assign" Command="{Binding GotoAssignView}" Padding="5"/>
     <Button Content="Policy" Command="{Binding GotoPolicyView}" Padding="5"/>
-    <Button Content="Settings" Command="{Binding GotoSettingsView}" Padding="5"/>
+            <Button Content="Settings" Command="{Binding ExportTypeCBillCommand}" Padding="5"/>
             <Button/>
         </ToolBar>
         <Border Padding="10" Grid.ColumnSpan="2" Grid.Row="1">

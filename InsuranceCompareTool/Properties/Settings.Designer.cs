@@ -79,5 +79,17 @@ namespace InsuranceCompareTool.Properties {
                 this["MembersFile"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TemplateFile {
+            get {
+                return ((string)(this["TemplateFile"]));
+            }
+            set {
+                this["TemplateFile"] = value;
+            }
+        }
     }
 }

@@ -175,8 +175,11 @@ namespace InsuranceCompareTool.ViewModels
             {
                 return new DelegateCommand(() =>
                 {
+                    if (mIsLoaded == false)
+                        return;
                     try
                     {
+
                         mProjectCacheHelper.SaveProjects(mProjects.ToList()); 
                     }
                     catch(Exception ex)

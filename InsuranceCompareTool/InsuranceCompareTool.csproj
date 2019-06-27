@@ -61,6 +61,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\BillExportTypeC.cs" />
     <Compile Include="Core\BillExportTypeD.cs" />
     <Compile Include="Core\BillAssignHelper.cs" />
     <Compile Include="Core\ColumnLayoutHelper.cs" />
