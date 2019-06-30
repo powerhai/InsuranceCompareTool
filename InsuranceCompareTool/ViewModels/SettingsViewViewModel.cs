@@ -308,12 +308,11 @@ namespace InsuranceCompareTool.ViewModels
         {
             if(mIsLoaded == true)
                 return;
-            this.DepartmentsFile = mConfigService.DepartmentsFile;
-            this.MembersFile = mConfigService.MembersFile;
-            this.RelationFile = mConfigService.RelationFile;
-            this.TemplateFile = Settings.Default.TemplateFile;
-            this.TargetFile = Settings.Default.WorkPath;
+            this.DepartmentsFile = Settings.Default.DepartmentsFile;
             this.MembersFile = Settings.Default.MembersFile;
+            this.RelationFile = Settings.Default.RelationFile;
+            this.TemplateFile = Settings.Default.TemplateFile;
+            this.TargetFile = Settings.Default.WorkPath; 
             mIsLoaded = true;
         }
  
@@ -325,6 +324,9 @@ namespace InsuranceCompareTool.ViewModels
             Settings.Default.WorkPath = TargetFile;
             Settings.Default.MembersFile = MembersFile;
             Settings.Default.TemplateFile = TemplateFile;
+            Settings.Default.RelationFile = RelationFile;
+            Settings.Default.DepartmentsFile = DepartmentsFile;
+         
         }
         public override void Close()
         { 

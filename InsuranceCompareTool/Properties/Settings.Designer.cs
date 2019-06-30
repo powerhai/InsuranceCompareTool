@@ -91,5 +91,29 @@ namespace InsuranceCompareTool.Properties {
                 this["TemplateFile"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RelationFile {
+            get {
+                return ((string)(this["RelationFile"]));
+            }
+            set {
+                this["RelationFile"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DepartmentsFile {
+            get {
+                return ((string)(this["DepartmentsFile"]));
+            }
+            set {
+                this["DepartmentsFile"] = value;
+            }
+        }
     }
 }
