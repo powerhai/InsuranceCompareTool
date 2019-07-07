@@ -36,6 +36,7 @@ namespace InsuranceCompareTool.ViewModels
         {
             if(mIsLoaded == true)
                 return;
+            mIsLoaded = true;
             if(string.IsNullOrEmpty( Settings.Default.Projects) )
                 return;
             try
@@ -51,7 +52,7 @@ namespace InsuranceCompareTool.ViewModels
                 //Console.WriteLine(ex); 
             }
 
-            mIsLoaded = true;
+           
         }
 
         #region Commands

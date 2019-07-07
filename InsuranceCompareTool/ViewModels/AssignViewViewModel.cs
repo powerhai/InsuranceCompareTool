@@ -447,6 +447,47 @@ namespace InsuranceCompareTool.ViewModels
 
             mLastLayout = cur;
         }
+        private void ExportTypeCBills()
+        {
+            IsBusy = true;
+            var t = new Task(() =>
+            {
+                try
+                {
+                    var templateService = new ExportTemplateService();
+                    var billLoader = new BillLoadService();
+                    var memberService =new MemberService();
+                    var billMemberService = new BillMemberService();
+                    var billAreaService = new BillAreaService();
+                    var billExportTypeCService = new BillExportTypeCService();
+                    
+                    templateService.Load(Settings.Default.TemplateFile); 
+                    billLoader.Load(DataTable); 
+                    memberService.Load(Settings.Default.MembersFile); 
+                    var bills = billLoader.GetBills();
+                    var members = memberService.GetMembers();
+                    
+                    
+                    billMemberService.CalculateMembers(bills, members);
+                    billAreaService.CalculateArea(bills);
+                    var path = Settings.Default.WorkPath + $"{DateTime.Now.AddMonths(1):yyyy-MM}\\地区收费清单";
+
+                    billExportTypeCService.Export(path, bills, members);
+                    Process.Start(path);
+                }
+                catch (InvalidOperationException e1)
+                {
+                    MessageBox.Show("操作不能继续：文件正被使用!", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            });
+            t.Start();
+            t.Wait();
+            IsBusy = false;
+        }
         private async void AssignBills()
         {
             var cur = ProjectView.View.CurrentItem as Project;
@@ -572,7 +613,13 @@ namespace InsuranceCompareTool.ViewModels
             }
         }
 
-
+        public ICommand ExportCCommand
+        {
+            get
+            {
+                return new DelegateCommand(ExportTypeCBills);
+            }
+        }
         public ICommand ExportDCommand
         {
             get

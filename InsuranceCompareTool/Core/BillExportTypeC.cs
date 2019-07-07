@@ -3,6 +3,9 @@ using System.Data;
 using System.IO;
 using InsuranceCompareTool.Models;
 namespace InsuranceCompareTool.Core {
+    /// <summary>
+    /// 导出订单 - 
+    /// </summary>
     public class BillExportTypeC
     {
         public void Export(string targetPath, DataTable bills, List<Member> members)
