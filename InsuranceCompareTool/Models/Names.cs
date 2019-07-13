@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace InsuranceCompareTool.Models
 {
+     
+
     public static class AreaNames
     {
         public const string JH = "金华";
@@ -27,8 +29,11 @@ namespace InsuranceCompareTool.Models
         public const string CURRENT_SERVICE_ID = "客服专员工号";
         public const string CURRENT_SERVICE_NAME = "客服专员姓名"; 
         public const string BILL_ID = "保单号";
+        public const string BILL_ID2 = "保险单号";
         public const string CUSTOMER_NAME = "投保人";
         public const string PAY_DATE = "应缴日期";
+        public const string PAY_DATE2 = "缴费起始期";
+
         public const string SELLER_ID = "营销员工号";
         public const string SELLER_NAME = "营销员姓名";
         public const string PAY_NO = "缴费期次";
@@ -40,6 +45,8 @@ namespace InsuranceCompareTool.Models
         public const string CUSTOMER_ADDRESS = "投保人地址";
         public const string PAY_ADDRESS = "缴费地址";
         public const string PAY_ADDRESS2 = "缴费地址（一）";
+        public const string PAY_ADDRESS4 = "缴费地址（二）";
+        public const string PAY_ADDRESS3 = "缴费地址2";
 
         public const string BILL_PRICE = "本期应缴保费";
         public const string PRODUCT_NAME = "险种名称";
@@ -55,6 +62,9 @@ namespace InsuranceCompareTool.Models
         public const string ASSIGNED_SERVICE_ID = "改派后专员工号";
         public const string ASSIGNED_SERVICE_NAME = "改派后专员姓名";
         public const string SYS_SERVICE_STATUS = "客服专员状态";
+        public const string PREVIOUS_SERVICE_ID = "上期服务人员工号";
+        public const string PREVIOUS_SERVICE = "上期服务人员";
+        public const string PREVIOUS_PAY_DATE = "上期缴费日期";
 
         public const string SYS_FILTER = "System_Filter";
         public const string SYS_FINISHED = "System_Finished";
@@ -106,6 +116,6 @@ namespace InsuranceCompareTool.Models
     {
         public const string MUSTER = "地区主管"; 
         public const string SELLER = "营销员";
-        public const string SERVICE = "服务员";
+        public const string SERVICE = "客服专员";
     }
 }

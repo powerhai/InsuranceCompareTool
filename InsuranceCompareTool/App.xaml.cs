@@ -3,6 +3,8 @@ using Prism.Ioc;
 using Prism.Modularity;
 using System.Windows;
 using InsuranceCompareTool.Services;
+using log4net;
+using Unity;
 namespace InsuranceCompareTool
 {
     /// <summary>
@@ -13,10 +15,11 @@ namespace InsuranceCompareTool
         protected override Window CreateShell()
         {
             return Container.Resolve<MainWindow>();
-        }
-
+        } 
+ 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
+            containerRegistry.RegisterInstance<ILog>(log4net.LogManager.GetLogger("HAISER")); 
             var configService = this.Container.Resolve<ConfigService>(); 
             containerRegistry.RegisterInstance<ConfigService>(configService);
         }

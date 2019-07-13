@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using InsuranceCompareTool.Core;
 using InsuranceCompareTool.Models;
+using InsuranceCompareTool.Properties;
 using NPOI.HSSF.UserModel;
 namespace InsuranceCompareTool.Services
 {
@@ -34,6 +35,7 @@ namespace InsuranceCompareTool.Services
                 var virServices = new List<Member>();
                 var virSellers = new List<string>();
                 var templateService = ExportTemplateService.CreateInstance();
+                templateService.Load(Settings.Default.TemplateFile);
                 //导出客服专员的----非虚拟工号的客服
                 foreach (var serId in serIds)
                 { 

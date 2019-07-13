@@ -6,23 +6,41 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using InsuranceCompareTool.Domain;
 using InsuranceCompareTool.Models;
+using log4net;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 namespace InsuranceCompareTool.Services
 {
     public class BillLoadHelper
     {
+        private readonly ILog mLogger;
+        public BillLoadHelper(ILog logger)
+        {
+            mLogger = logger;
+        }
+        private readonly List<ColumnDefine> mColumns = new List<ColumnDefine>()
+        {
+            new ColumnDefine(){Name = BillSheetColumns.PAY_DATE, Type = typeof(DateTime)},
+            new ColumnDefine(){Name = BillSheetColumns.PAY_DATE2, Type = typeof(DateTime)},
+            new ColumnDefine(){Name = BillSheetColumns.PAY_NO, Type = typeof(int)},
+            new ColumnDefine(){Name = BillSheetColumns.BILL_PRICE, Type = typeof(double)},
+            new ColumnDefine(){Name = BillSheetColumns.PREVIOUS_PAY_DATE, Type = typeof(DateTime)},
+
+        };
+
         public DataTable Load(string file)
         {
             string tempFile = Path.GetTempFileName();
             File.Copy(file, tempFile, true);
             IWorkbook excel = new XSSFWorkbook(tempFile);
-
+            mLogger.Debug($"开始加载表格: {file}");
             try
             {
                 if (excel.NumberOfSheets <= 0)
                 {
+                    mLogger.Error($"数据表缺少数据");
                     throw new Exception("保单数据表文件缺少数据");
                 }
 
@@ -32,6 +50,7 @@ namespace InsuranceCompareTool.Services
                 var columns = sheetReader.GetColumns();
                 if (columns.Count <= 0)
                 {
+                    mLogger.Error($"缺少表头数据");
                     throw new Exception("保单数据表文件缺少表头数据");
                 }
 
@@ -42,12 +61,13 @@ namespace InsuranceCompareTool.Services
                 for (int i =  headerRow.FirstCellNum ; i < headerRow.LastCellNum; i++)
                 {
                     var hcell = headerRow.GetCell(i);
+                    var colData  = mColumns.FirstOrDefault(a => a.Name.Equals(hcell.StringCellValue)); 
                     var dcell = firstDataRow.GetCell(i);
-                    var cellType = GetType(dcell?.CellType);
+                    var cellType = colData == null?  GetType(dcell?.CellType) : colData.Type ;
                     var col = new DataColumn(hcell.StringCellValue, cellType );
                     dt.Columns.Add(col);
                 }
-
+                AttachColumns(dt);
                 for(int i = sheet.FirstRowNum + 1; i < sheet.LastRowNum; i++)
                 {
                     var row = sheet.GetRow(i);
@@ -64,11 +84,19 @@ namespace InsuranceCompareTool.Services
                                 {
                                     dataRow[j] = cell.BooleanCellValue;
                                     break;
-                                }
-
+                                } 
                                 case CellType.Numeric:
                                 {
-                                    dataRow[j] = cell.NumericCellValue;
+                                    var col = dt.Columns[j];
+                                    if(col.DataType == typeof(DateTime))
+                                    {
+                                        dataRow[j] = cell.DateCellValue;
+                                    }
+                                    else 
+                                    {
+                                        dataRow[j] = cell.NumericCellValue;
+                                    }
+                                    
                                     break;
                                 }
                                 case CellType.Error:
@@ -88,19 +116,31 @@ namespace InsuranceCompareTool.Services
 
                     dt.Rows.Add(dataRow);
                 }
-
+                mLogger.Debug($"表格加载完成");
                 return dt;
 
             }
             catch (Exception ex)
             {
+                mLogger.Error($"出现错误: {ex}");
                 throw;
             }
             finally
             {
                 excel.Close();
             }
+            
+        }
 
+        private void AttachColumns(DataTable dt)
+        {
+            if(dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE))
+            {
+                if(!dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE_ID))
+                {
+                    dt.Columns.Add(new DataColumn(BillSheetColumns.PREVIOUS_SERVICE_ID, typeof(String)));
+                }
+            }
         }
 
         private Type GetType(CellType? cellType)

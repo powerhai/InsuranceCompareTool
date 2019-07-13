@@ -15,11 +15,7 @@ namespace InsuranceCompareTool.Core
     /// </summary>
     public class BillAssignHelper
     {
-        class ColumnDefine
-        {
-            public string Name { get; set; }
-            public Type Type { get; set; }
-        }
+
         private const string TARGET_SERVICE_ID = BillSheetColumns.ASSIGNED_SERVICE_ID;
         private const string TARGET_SERVICE_NAME = BillSheetColumns.ASSIGNED_SERVICE_NAME;
           
@@ -153,8 +149,12 @@ namespace InsuranceCompareTool.Core
         /// <param name="step"></param>
         private void AssignToSomebody(DataRow row, Step step)
         {
-            row[TARGET_SERVICE_ID] = step.DispatchDesignated;
-            row[TARGET_SERVICE_NAME] = step.DispatchDesignated;
+            if(step.DispatchDesignated != null)
+            {
+                row[TARGET_SERVICE_ID] = step.DispatchDesignated;
+                row[TARGET_SERVICE_NAME] = step.DispatchDesignated;
+            }
+
             row[BillSheetColumns.SYS_FILTER] = step.Title;
         }
     }
