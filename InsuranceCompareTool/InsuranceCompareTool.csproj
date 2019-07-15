@@ -82,6 +82,7 @@
     <Compile Include="Services\BillLoadHelper.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="ShareCommon\ValueConverter\MultiParameterConverter.cs" />
     <Compile Include="ShareCommon\VisualLogger.cs" />
     <Compile Include="ShareCommon\EnumPackager.cs" />
     <Compile Include="ShareCommon\EditableObject.cs" />

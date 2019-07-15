@@ -3,12 +3,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:prism="http://prismlibrary.com/"    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" 
+	xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+	xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+	xmlns:valueConverter="clr-namespace:InsuranceCompareTool.ShareCommon.ValueConverter"
 	x:Class="InsuranceCompareTool.Views.AssignView" x:Name="Root"
 	mc:Ignorable="d"   d:DesignHeight="450" d:DesignWidth="800"
              prism:ViewModelLocator.AutoWireViewModel="True"  >
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="Boolean2VisibleConverter" />
+
+        <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                        <Expander IsExpanded="True">
+                            <Expander.Header>
+                                <TextBlock Text="{Binding Path=Name}"/>
+                            </Expander.Header>
+                            <ItemsPresenter />
+                        </Expander>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <valueConverter:MultiParameterConverter x:Key="MultiParameterConverter" />
+
     </UserControl.Resources>
     <Border Padding="10">
 
@@ -24,19 +43,22 @@
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" IsEnabled="{Binding IsExportEnable}" >
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
                     <ColumnDefinition Width="10"></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                     <ColumnDefinition Width="10"></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
-                    <ColumnDefinition Width="10"></ColumnDefinition>
-                    <ColumnDefinition Width="Auto"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <GroupBox Padding="5" Header="过滤">
+</Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="5"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+                <GroupBox Padding="5" Header="过滤" Grid.Row="0" Grid.Column="0" Grid.RowSpan="3">
                     <ListBox ItemsSource="{Binding FilterView.View}"  BorderThickness="0"   VirtualizingPanel.IsVirtualizing="True">
                         <ListBox.Template>
                             <ControlTemplate TargetType="{x:Type ListBox}">
-                                <StackPanel   Orientation="Horizontal" IsItemsHost="True"/>
+                                <WrapPanel   Orientation="Horizontal" IsItemsHost="True" />
                             </ControlTemplate>
                         </ListBox.Template>
 
@@ -68,7 +90,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </GroupBox>
-                <GroupBox Padding="5" Grid.Column="2" Header="搜索"  Width="220">
+                <GroupBox Padding="5" Grid.Row="0" Grid.Column="2" Header="搜索"   >
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -79,7 +101,7 @@
                         <Button Command="{Binding SearchCommand}" IsDefault="True" Grid.Column="2" CommandParameter="{Binding ElementName=SearchBox,Path=Text}">搜索</Button>
                     </Grid>
                 </GroupBox>
-                <GroupBox Padding="5" Grid.Column="4" Header="自动派单"  MaxWidth="250">
+                <GroupBox Padding="5" Grid.Column="2" Grid.Row="2" Header="自动派单"  >
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -90,15 +112,19 @@
                         <Button Command="{Binding DoAssignCommand}" Grid.Column="2">派单</Button>
                     </Grid>
                 </GroupBox>
-                <GroupBox Padding="5" Grid.Column="6" Header="手动派单">
+                <GroupBox Padding="5" Grid.Row="0" Grid.Column="4" Header="手动派单">
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
                             <ColumnDefinition Width="10"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
                             <ColumnDefinition Width="10"></ColumnDefinition>
                             <ColumnDefinition Width="50"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
                         <ComboBox Grid.Column="0" ItemsSource="{Binding Path=AreaView.View}" IsSynchronizedWithCurrentItem="True"></ComboBox>
                         <ComboBox Grid.Column="2" ItemsSource="{Binding MemberView.View}"  IsSynchronizedWithCurrentItem="True" DisplayMemberPath="Title"  VirtualizingPanel.IsVirtualizing="True"  >
                             <ComboBox.ItemContainerStyle>
@@ -124,6 +150,40 @@
                             </ComboBox.ItemTemplate>-->
                         </ComboBox>
                         <Button Command="{Binding AssignToSomebodyCommand}" Grid.Column="4" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" >派单</Button>
+                       
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="手动派单 (选中行)" Padding="5" Grid.Row="2" Grid.Column="4" > 
+                    <GroupBox.Style>
+                        <Style TargetType="{x:Type GroupBox}"> 
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedMembers.Count}" Value="0" >
+                                    <Setter Property="IsEnabled" Value="False"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </GroupBox.Style>
+
+                    <Grid VerticalAlignment="Center" >
+                        <Grid.ColumnDefinitions>
+                            
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="10"></ColumnDefinition>
+                            <ColumnDefinition Width="50"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+
+
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding SelectMemberView.View}"  IsSynchronizedWithCurrentItem="True" DisplayMemberPath="Title2"  VirtualizingPanel.IsVirtualizing="True"  >
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="{x:Type ComboBoxItem}" >
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" ></Setter>
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
+                           
+                        </ComboBox>
+                        <Button Command="{Binding AssignToServiceCommand}" Grid.Column="2" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" >派单</Button>
+                       
                     </Grid>
                 </GroupBox>
             </Grid>
@@ -187,16 +247,41 @@
                                 <ColumnDefinition Width="37*"/>
                                 <ColumnDefinition Width="350*"/>
                             </Grid.ColumnDefinitions>
-                            <DataGrid x:Name="DataGrid" ItemsSource="{Binding DataTable}" AutoGenerateColumns="True"  IsReadOnly="True"
+                            <DataGrid   x:Name="DataGrid" ItemsSource="{Binding DataTable}" AutoGenerateColumns="True"  IsReadOnly="True"
 				          AutoGeneratingColumn="DataGrid_OnAutoGeneratingColumn"  CanUserAddRows="False"  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="Gainsboro"
 						  AutoGeneratedColumns="DataGrid_OnAutoGeneratedColumns" CanUserDeleteRows="False" CanUserResizeRows="False" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"
 				            EnableRowVirtualization="True" EnableColumnVirtualization="True"  SelectionMode="Extended" Grid.ColumnSpan="2"   >
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="SelectionChanged">
+                                        <i:InvokeCommandAction Command="{Binding ElementName=Root,Path=DataContext.SelectBillCommand}" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" />
+                                    </i:EventTrigger>
+                                   
+                                </i:Interaction.Triggers>
+
                                 <DataGrid.Resources>
                                     <Style TargetType="{x:Type TextBlock}">
                                         <Setter Property="TextWrapping" Value="Wrap"></Setter>
                                         <Setter Property="Height" Value="Auto"></Setter>
                                     </Style>
                                 </DataGrid.Resources>
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="5" Background="#EAEAEA" >
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                    <ColumnDefinition Width="30"></ColumnDefinition>
+                                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock  Text="{Binding System_History}" TextWrapping="Wrap" Grid.Column="0"
+                                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="#069218" />
+                                                <TextBlock  Text="{Binding System_Error}" TextWrapping="Wrap" Grid.Column="2"
+                                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="#C43808" />
+                                            </Grid>
+                                        
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
 
                             </DataGrid>
                             <TextBlock  VerticalAlignment="Bottom" HorizontalAlignment="Right" IsHitTestVisible="False"  Margin="0,0,35,2" Grid.Column="1" >
@@ -270,6 +355,7 @@
                     </Grid>
                 </GroupBox>
                 <GroupBox Grid.Column="2" Padding="5" Header="导出" IsEnabled="{Binding IsExportEnable}" >
+
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"/>

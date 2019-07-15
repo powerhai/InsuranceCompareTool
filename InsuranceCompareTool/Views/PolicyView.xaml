@@ -42,9 +42,9 @@ prism:ViewModelLocator.AutoWireViewModel="True" d:DesignHeight="450" d:DesignWid
                         <ColumnDefinition Width="30"></ColumnDefinition>
                         <ColumnDefinition Width="10"></ColumnDefinition>
                         <ColumnDefinition Width="30"></ColumnDefinition>
-	                    <ColumnDefinition Width="10"></ColumnDefinition>
-	                    <ColumnDefinition Width="30"></ColumnDefinition>
-					</Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+                        <ColumnDefinition Width="30"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
                     <Image Source="{StaticResource IconFlowerSelected}"></Image>
                     <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" Grid.Column="2" FontWeight="Bold" Foreground="#FF33D2F5" />
 
@@ -66,14 +66,14 @@ prism:ViewModelLocator.AutoWireViewModel="True" d:DesignHeight="450" d:DesignWid
                         </xctk:IconButton.Icon>
                     </xctk:IconButton>
 
-	                <xctk:IconButton Grid.Column="9" Command="{Binding ElementName=Root, Path=DataContext.CopyCommand}" CommandParameter="{Binding .}" ToolTip="拷贝">
-		                <xctk:IconButton.Icon>
-			                <Image Source="{StaticResource IconCopy}" />
-		                </xctk:IconButton.Icon>
-	                </xctk:IconButton>
+                    <xctk:IconButton Grid.Column="9" Command="{Binding ElementName=Root, Path=DataContext.CopyCommand}" CommandParameter="{Binding .}" ToolTip="拷贝">
+                        <xctk:IconButton.Icon>
+                            <Image Source="{StaticResource IconCopy}" />
+                        </xctk:IconButton.Icon>
+                    </xctk:IconButton>
 
 
-					<xctk:IconButton Grid.Column="11" Command="{Binding ElementName=Root, Path=DataContext.DelCommand}" CommandParameter="{Binding .}" ToolTip="删除">
+                    <xctk:IconButton Grid.Column="11" Command="{Binding ElementName=Root, Path=DataContext.DelCommand}" CommandParameter="{Binding .}" ToolTip="删除">
                         <xctk:IconButton.Icon>
                             <Image Source="{StaticResource IconDel}" />
                         </xctk:IconButton.Icon>
@@ -87,9 +87,9 @@ prism:ViewModelLocator.AutoWireViewModel="True" d:DesignHeight="450" d:DesignWid
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="30"></ColumnDefinition>
                         <ColumnDefinition Width="10"></ColumnDefinition>
-<ColumnDefinition Width="1*"></ColumnDefinition> 
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Image Source="{StaticResource IconFlower}"></Image> 
+                    <Image Source="{StaticResource IconFlower}"></Image>
                     <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" Grid.Column="2"  />
                 </Grid>
 
@@ -99,14 +99,16 @@ prism:ViewModelLocator.AutoWireViewModel="True" d:DesignHeight="450" d:DesignWid
 
     <Grid >
         <Grid.RowDefinitions>
-            <RowDefinition Height="17*" /> 
+            <RowDefinition Height="17*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="40" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
 
             <GroupBox Header="分单方案" Padding="10">
 
                 <ListBox ItemsSource="{Binding ProjectView}" BorderBrush="{x:Null}">
- 
+
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="Margin" Value="5,5" />
@@ -127,14 +129,26 @@ prism:ViewModelLocator.AutoWireViewModel="True" d:DesignHeight="450" d:DesignWid
 
             </GroupBox>
 
-	        <xctk:IconButton   Command="{Binding AddCommand}" VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="40" Width="40" Margin="10">
-		        <xctk:IconButton.Icon>
-			        <Image Source="{StaticResource IconAdd}" />
-		        </xctk:IconButton.Icon>
-	        </xctk:IconButton>
+            <xctk:IconButton   Command="{Binding AddCommand}" VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="40" Width="40" Margin="10">
+                <xctk:IconButton.Icon>
+                    <Image Source="{StaticResource IconAdd}" />
+                </xctk:IconButton.Icon>
+            </xctk:IconButton>
 
-		</Grid>
- 
+        </Grid>
+        <Border Grid.Row="2" Padding="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                    <ColumnDefinition Width="70"></ColumnDefinition>
+                    <ColumnDefinition Width="10"></ColumnDefinition>
+                    <ColumnDefinition Width="70"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="1" Content="导入" Command="{Binding ImportCommand,Mode=OneTime}"></Button>
+                <Button Grid.Column="3" Content="导出" Command="{Binding ExportCommand,Mode=OneTime}"></Button>
+            </Grid>
+        </Border>
+
 
     </Grid>
 </UserControl>

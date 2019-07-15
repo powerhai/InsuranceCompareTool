@@ -33,19 +33,32 @@ namespace InsuranceCompareTool.ViewModels
             new EnumPackager() { Enum = BoolType.And },
             new EnumPackager() { Enum = BoolType.Or }
         };
+        
         public List<EnumPackager> ColumnTypes => new List<EnumPackager>()
         {
             new EnumPackager(){ Enum = LogicColumnName.ServiceID },
             new EnumPackager(){ Enum = LogicColumnName.ServiceStatus },
+            new EnumPackager(){Enum = LogicColumnName.PreviousServiceID},
+            new EnumPackager(){ Enum = LogicColumnName.SellerID }, 
             new EnumPackager(){ Enum = LogicColumnName.SellerStatus }, 
             new EnumPackager(){ Enum = LogicColumnName.CustomerPassportId }, 
             new EnumPackager(){ Enum = LogicColumnName.CurrentPrice }, 
-            new EnumPackager(){ Enum = LogicColumnName.PAY_ADDRESS },
-            new EnumPackager(){ Enum = LogicColumnName.PAY_ADDRESS2 },
+            new EnumPackager(){ Enum = LogicColumnName.PayAddress }, 
             new EnumPackager(){ Enum = LogicColumnName.BillID },
+            new EnumPackager(){ Enum = LogicColumnName.DifferentService },
+            new EnumPackager(){ Enum = LogicColumnName.DifferentArea },
+            new EnumPackager(){ Enum = LogicColumnName.PayNo },
         };
-        
-        public List<EnumPackager> OperatorTypes
+        public List<EnumPackager> OperatorTypesAddress => new List<EnumPackager>()
+        {
+            new EnumPackager(){ Enum = OperatorType.Contain  }
+        };
+        public List<EnumPackager> OperatorTypesString => new List<EnumPackager>()
+        {
+            new EnumPackager(){ Enum =  OperatorType.Equal},
+            new EnumPackager(){ Enum =  OperatorType.NoEqual},
+        };
+        public List<EnumPackager> OperatorNoneTypes
         {
             get
             {
@@ -53,10 +66,7 @@ namespace InsuranceCompareTool.ViewModels
                 {
                     mOperatorTypes = new List<EnumPackager>()
                     {
-                        new EnumPackager(){ Enum =  OperatorType.Equal},
-                        new EnumPackager(){ Enum = OperatorType.Greater },
-                        new EnumPackager(){ Enum = OperatorType.Less } ,
-                        new EnumPackager(){ Enum = OperatorType.Contain } ,
+                        new EnumPackager(){ Enum =  OperatorType.Other},
                     };
                 } 
                 return mOperatorTypes;
@@ -70,8 +80,11 @@ namespace InsuranceCompareTool.ViewModels
                     mOperatorTypesForNumber = new List<EnumPackager>()
                     {
                         new EnumPackager(){ Enum =  OperatorType.Equal},
+                        new EnumPackager(){ Enum =  OperatorType.NoEqual}, 
                         new EnumPackager(){ Enum = OperatorType.Greater },
+                        new EnumPackager(){ Enum = OperatorType.GreaterAndEqual },
                         new EnumPackager(){ Enum = OperatorType.Less } ,
+                        new EnumPackager(){ Enum = OperatorType.LessAndEqual } ,
                     };
                 } 
                 return mOperatorTypesForNumber;
@@ -79,11 +92,12 @@ namespace InsuranceCompareTool.ViewModels
         }
         public List<EnumPackager> DispatchTypes => new List<EnumPackager>()
         {
-            new EnumPackager(){Enum = DispatchType.DispatchToAreaManager},
-            new EnumPackager(){Enum = DispatchType.DispatchToDesignated},
-            new EnumPackager(){Enum = DispatchType.DispatchToLastService},
+            new EnumPackager(){Enum = DispatchType.DispatchToManagerOfService}, 
+            new EnumPackager(){Enum = DispatchType.DispatchToManagerOfSeller},
             new EnumPackager(){Enum = DispatchType.DispatchToManagerOfCustomer},
-            new EnumPackager(){Enum = DispatchType.DispatchToManagerOfSeller}, 
+            new EnumPackager(){Enum = DispatchType.DispatchToPreviousService},
+            new EnumPackager(){Enum = DispatchType.DispatchToDesignated}, 
+            new EnumPackager(){Enum = DispatchType.DoNot},
         };
         public ProjectEditViewModel()
         { 

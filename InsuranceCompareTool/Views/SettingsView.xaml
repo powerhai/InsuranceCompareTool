@@ -18,8 +18,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="0"/>
+                    <RowDefinition Height="0"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
@@ -28,25 +28,25 @@
                     <RowDefinition Height="10*"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0">人员表:</Label>
-                <Label Grid.Row="2" Grid.Column="0">部门表:</Label>
-                <Label Grid.Row="4" Grid.Column="0">绑定表:</Label>
+                <!--<Label Grid.Row="2" Grid.Column="0">部门表:</Label>
+                <Label Grid.Row="4" Grid.Column="0">绑定表:</Label>-->
                 <Label Grid.Row="6" Grid.Column="0">工作目录:</Label>
                 <Label Grid.Row="8" Grid.Column="0">导出模板:</Label>
 
                 <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding MembersFile}"></TextBox>
-                <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding DepartmentsFile}"></TextBox>
-                <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding RelationFile}"></TextBox>
+                <!--<TextBox Grid.Row="2" Grid.Column="2" Text="{Binding DepartmentsFile}"></TextBox>
+                <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding RelationFile}"></TextBox>-->
                 <TextBox Grid.Row="6" Grid.Column="2" Text="{Binding TargetFile}"></TextBox>
                 <TextBox Grid.Row="8" Grid.Column="2" Text="{Binding TemplateFile}"></TextBox>
                 <Button  Grid.Row="0" Grid.Column="4"  Command="{Binding SelectMembersFileCommand}">...</Button>
-                <Button  Grid.Row="2" Grid.Column="4"  Command="{Binding SelectDepartmentsFileCommand}">...</Button>
-                <Button  Grid.Row="4" Grid.Column="4"  Command="{Binding SelectRelationFileCommand}">...</Button>
+                <!--<Button  Grid.Row="2" Grid.Column="4"  Command="{Binding SelectDepartmentsFileCommand}">...</Button>
+                <Button  Grid.Row="4" Grid.Column="4"  Command="{Binding SelectRelationFileCommand}">...</Button>-->
                 <Button  Grid.Row="6" Grid.Column="4" Command="{Binding SelectTargetFileCommand}">...</Button>
                 <Button  Grid.Row="8" Grid.Column="4" Command="{Binding SelectTemplateFileCommand}">...</Button>
 
                 <Button  Grid.Row="0" Grid.Column="6"  Command="{Binding OpenMemberFileCommand}">open</Button>
-                <Button  Grid.Row="2" Grid.Column="6"  Command="{Binding OpenDepartmentsFileCommand}">open</Button>
-                <Button  Grid.Row="4" Grid.Column="6"  Command="{Binding OpenRelationFileFileCommand}">open</Button>
+                <!--<Button  Grid.Row="2" Grid.Column="6"  Command="{Binding OpenDepartmentsFileCommand}">open</Button>
+                <Button  Grid.Row="4" Grid.Column="6"  Command="{Binding OpenRelationFileFileCommand}">open</Button>-->
                 <Button  Grid.Row="6" Grid.Column="6"  Command="{Binding OpenWorkPositionCommand}">open</Button>
                 <Button  Grid.Row="8" Grid.Column="6"  Command="{Binding OpenTemplateCommand}">open</Button>
 

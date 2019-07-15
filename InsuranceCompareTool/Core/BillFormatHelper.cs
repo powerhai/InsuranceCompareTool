@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using InsuranceCompareTool.Domain;
 using InsuranceCompareTool.Models;
 using log4net;
 namespace InsuranceCompareTool.Core
 {
     public class BillFormatHelper
     {
+        Regex mIDReg = new Regex("^[A-Za-z\\d]*$");
         private readonly ILog mLogger;
         private readonly List<Member> mMembers;
         public BillFormatHelper(ILog logger, List<Member> members)
@@ -20,14 +22,139 @@ namespace InsuranceCompareTool.Core
         }
         public void Format(DataTable dt)
         {
-            FormatPreviousService(dt);
+            AttachSystemColumns(dt);
             FormatAddress(dt);
             FormatValidColumns(dt);
             FormatMobilePhone(dt);
+            AttachColumnServiceStatus(dt);
+            AttachColumnPreviousServiceID(dt);
+            AttachColumnReAssign(dt);
+            
+            FormatPreviousService(dt);
+            FormatClientArea(dt);
+            FormatReAssign(dt);
+            FormatSysService(dt);
         }
+        private void FormatSysService(DataTable dt)
+        {
+            foreach(DataRow dr in dt.Rows)
+            {
+                var serviceName = "";
+                var serviceId = "";
+                if(!dr.IsNull(BillSheetColumns.CURRENT_SERVICE_NAME))
+                {
+                    serviceName = Convert.ToString( dr[BillSheetColumns.CURRENT_SERVICE_NAME]);
+                }
+
+                if(!dr.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                {
+                    serviceId = Convert.ToString(dr[BillSheetColumns.CURRENT_SERVICE_ID]);
+                }
+
+                if(!string.IsNullOrEmpty(serviceName) || !string.IsNullOrEmpty(serviceId))
+                {
+                    var service = $"{serviceName} ({serviceId})";
+                    dr[BillSheetColumns.SYS_SERVICE] = service;
+                }
+            }
+        }
+        private void FormatReAssign(DataTable dt)
+        {
+            if(!dt.Columns.Contains( BillSheetColumns.ASSIGNED_SERVICE_NAME))
+                return;
+            foreach (DataRow dr in dt.Rows)
+            { 
+                if(dr.IsNull( BillSheetColumns.ASSIGNED_SERVICE_NAME))
+                    continue;
+                var value =Convert.ToString(  dr[BillSheetColumns.ASSIGNED_SERVICE_NAME]);
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    value = value.Trim();
+                    
+                    {
+                        var mems = mMembers.Where(a =>
+                            a.Name.Equals(value, StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                        if (mems.Length == 1)
+                        {
+                            var mem = mems.FirstOrDefault();
+                            dr[BillSheetColumns.ASSIGNED_SERVICE_ID] = mem.ID;
+                        }
+
+                        if (mems.Length == 0)
+                        {
+                            mLogger.Warn($"未匹配到改派后专员：{value}");
+                        }
+
+                        if (mems.Length > 1)
+                        {
+                            mLogger.Warn($"存在两个以上相同的改派后专员：{value}， 未能补足改派后专员工号");
+                        }
+                    }
+                }
+            }
+
+        }
+        private void AttachColumnReAssign(DataTable dt)
+        {
+            var col = BillTableColumns.COL_ASSIGNED_SERVICE_ID;
+
+            if(dt.Columns.Contains(BillSheetColumns.ASSIGNED_SERVICE_NAME))
+            {
+                if(!dt.Columns.Contains(col.Name))
+                {
+                    dt.Columns.Add(col.Name, col.Type);
+                }
+            }
+        }
+        private void AttachSystemColumns(DataTable dt)
+        {
+            var sysCols = BillTableColumns.Columns.Where(a => a.IsSystemColumn).ToArray();
+
+            foreach (var column in sysCols)
+            {
+                if (!dt.Columns.Contains(column.Name))
+                {
+                    dt.Columns.Add(column.Name, column.Type);
+                }
+            }
+        }
+        private void AttachColumnServiceStatus(DataTable dt)
+        {
+            var col = BillTableColumns.COL_SERVICE_STATUS;
+            if(dt.Columns.Contains(col.Name))
+            {
+                return;
+            }
+             
+            dt.Columns.Add(col.Name, col.Type);
+            foreach(DataRow row in dt.Rows)
+            {
+                if(!row.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                {
+                    var sellerID = (string) row[BillSheetColumns.CURRENT_SERVICE_ID];
+                    var mem = mMembers.Find(a => a.ID.Equals(sellerID));
+                    row[col.Name] = mem?.Status;
+                }
+            }
+        }
+
+
+        private void AttachColumnPreviousServiceID(DataTable dt)
+        {
+            if (dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE))
+            {
+                if (!dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE_ID))
+                {
+                    var col = BillTableColumns.COL_PREVIOUS_SERVICE_ID;
+                    dt.Columns.Add(new DataColumn(col.Name,col.Type));
+                }
+            }
+        }
+
         private void FormatPreviousService(DataTable dt)
         {
-            var reg = new Regex("^[A-Za-z\\d]*$");
+            
            
             if(dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE))
             {
@@ -39,7 +166,7 @@ namespace InsuranceCompareTool.Core
                     if(!string.IsNullOrEmpty(value))
                     {
                         value = value.Trim();
-                        if(reg.IsMatch(value))
+                        if(mIDReg.IsMatch(value))
                         {
                             var mem = services.FirstOrDefault(a =>
                                 a.ID.Equals(value, StringComparison.CurrentCultureIgnoreCase));
@@ -131,6 +258,66 @@ namespace InsuranceCompareTool.Core
             return v;
         }
 
+        private void FormatClientArea(DataTable dt)
+        {
+            foreach(DataRow dr in dt.Rows)
+            {
+                var area = GetClientArea(dr);
+                dr[BillSheetColumns.CLIENT_AREA] = area;
+            }
+        }
+
+        private string GetClientArea(DataRow bill)
+        {
+            var cols = new List<string>();
+            foreach (DataColumn column in bill.Table.Columns)
+            {
+                if (column.ColumnName.Contains(BillSheetColumns.PAY_ADDRESS))
+                {
+                    cols.Add(column.ColumnName);
+                }
+            }
+            if (cols.Count <= 0)
+                return "";
+            var address = "";
+            foreach (var col in cols)
+            {
+                if (!bill.IsNull(col))
+                {
+                    address = (string)bill[col];
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(address))
+            {
+                return "";
+            }
+
+            var areas = GetAreas(address);
+            if (areas.Count <= 0)
+                return "";
+            var area = areas.FirstOrDefault(a => a != AreaNames.JH);
+            if (string.IsNullOrEmpty(area))
+            {
+                area = AreaNames.JH;
+            }
+            return area;
+        }
+        private List<string> GetAreas(string address)
+        {
+            var list = new List<string>();
+            foreach (var area in AreaNames.Areas)
+            {
+                if (address.Contains(area))
+                {
+                    list.Add(area);
+                }
+            }
+            return list;
+        }
+
+
         private void FormatValidColumns(DataTable dt)
         {
             foreach(DataRow dr in dt.Rows)
@@ -156,6 +343,7 @@ namespace InsuranceCompareTool.Core
             }
         }
 
+ 
         private string ClearVaildChars(object val)
         {
             var value = val as string;

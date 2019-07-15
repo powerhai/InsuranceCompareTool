@@ -19,6 +19,7 @@ namespace InsuranceCompareTool.Models
         public const string PA = "磐安";
         public const string DY = "东阳";
         public const string QT = "区拓";
+        public static readonly string[] Areas = new string[8]{JH, YK, WY, LX, YW, PJ, PA, DY };
     }
 
     public static class BillSheetColumns
@@ -46,9 +47,11 @@ namespace InsuranceCompareTool.Models
         public const string PAY_ADDRESS = "缴费地址";
         public const string PAY_ADDRESS2 = "缴费地址（一）";
         public const string PAY_ADDRESS4 = "缴费地址（二）";
-        public const string PAY_ADDRESS3 = "缴费地址2";
+        public const string PAY_ADDRESS3 = "缴费地址1";
+        public const string PAY_ADDRESS5 = "缴费地址2";
 
         public const string BILL_PRICE = "本期应缴保费";
+        public const string BILL_PRICE2 = "保费";
         public const string PRODUCT_NAME = "险种名称";
         public const string PER_PAY = "是否垫缴";
         public const string CREDITOR = "被保险人";
@@ -65,10 +68,12 @@ namespace InsuranceCompareTool.Models
         public const string PREVIOUS_SERVICE_ID = "上期服务人员工号";
         public const string PREVIOUS_SERVICE = "上期服务人员";
         public const string PREVIOUS_PAY_DATE = "上期缴费日期";
-
+        public const string CLIENT_AREA = "投保人地区";
         public const string SYS_FILTER = "System_Filter";
         public const string SYS_FINISHED = "System_Finished";
         public const string SYS_HISTORY = "System_History";
+        public const string SYS_SERVICE = "System_SERVICE";
+        public const string SYS_ERROR = "System_Error";
     }
 
     public static class MemberSheetColumns

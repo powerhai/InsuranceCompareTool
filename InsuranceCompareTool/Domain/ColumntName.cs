@@ -20,11 +20,21 @@ namespace InsuranceCompareTool.Domain {
         [Description(BillSheetColumns.BILL_ID)] 
         BillID,
 
-        [Description(BillSheetColumns.PAY_ADDRESS)]
-        PAY_ADDRESS,
+        [Description("缴费地址")]
+        PayAddress,
+        [Description(BillSheetColumns.PREVIOUS_SERVICE_ID)]
+        PreviousServiceID,
 
-        [Description(BillSheetColumns.PAY_ADDRESS2)]
-        PAY_ADDRESS2
+        [Description(BillSheetColumns.SELLER_ID)]
+        SellerID,
+
+        [Description("同一投保人，客服专员不一致")]
+        DifferentService,
+
+        [Description(BillSheetColumns.PAY_NO)]
+        PayNo,
+        [Description("投保人与营销员所在地不同")]
+        DifferentArea 
 
     }
 }

@@ -19,7 +19,7 @@ namespace InsuranceCompareTool.Core
             using (MemoryStream ms = new MemoryStream())
             {
                 XmlSerializer xml = new XmlSerializer(typeof(List<Project>));
-                xml.Serialize(ms,projects);
+                xml.Serialize(ms, projects);
                 ms.Seek(0, SeekOrigin.Begin);
                 var bytes = new byte[ms.Length];
                 ms.Read(bytes, 0, bytes.Length);
@@ -39,12 +39,37 @@ namespace InsuranceCompareTool.Core
                 ms.Write(bytes, 0, bytes.Length);
                 ms.Seek(0, SeekOrigin.Begin);
                 XmlSerializer xml = new XmlSerializer(typeof(List<Project>));
-                list  = xml.Deserialize(ms) as List<Project>; 
+                list = xml.Deserialize(ms) as List<Project>;
             }
 
             return list;
         }
-        
+        public bool SaveProjects(string json)
+        {
+            var list = new List<Project>();
+            if (string.IsNullOrEmpty(json))
+                return false;
+            try
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    var bytes = System.Text.Encoding.UTF8.GetBytes(Settings.Default.Projects);
+                    ms.Write(bytes, 0, bytes.Length);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    XmlSerializer xml = new XmlSerializer(typeof(List<Project>));
+                    list = xml.Deserialize(ms) as List<Project>;
+                }
+                Settings.Default.Projects = json;
+                Settings.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+             
+            return true;
+        }
+
     }
     public class ColumnLayoutHelper
     {
@@ -61,7 +86,7 @@ namespace InsuranceCompareTool.Core
                     ms.Write(bytes, 0, bytes.Length);
                     ms.Seek(0, SeekOrigin.Begin);
                     XmlSerializer xml = new XmlSerializer(typeof(List<ColumnVisible>));
-                    list   = xml.Deserialize(ms) as List<ColumnVisible>; 
+                    list = xml.Deserialize(ms) as List<ColumnVisible>;
                 }
             }
             catch (Exception ex)

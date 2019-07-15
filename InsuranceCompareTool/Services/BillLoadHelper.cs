@@ -20,16 +20,8 @@ namespace InsuranceCompareTool.Services
         {
             mLogger = logger;
         }
-        private readonly List<ColumnDefine> mColumns = new List<ColumnDefine>()
-        {
-            new ColumnDefine(){Name = BillSheetColumns.PAY_DATE, Type = typeof(DateTime)},
-            new ColumnDefine(){Name = BillSheetColumns.PAY_DATE2, Type = typeof(DateTime)},
-            new ColumnDefine(){Name = BillSheetColumns.PAY_NO, Type = typeof(int)},
-            new ColumnDefine(){Name = BillSheetColumns.BILL_PRICE, Type = typeof(double)},
-            new ColumnDefine(){Name = BillSheetColumns.PREVIOUS_PAY_DATE, Type = typeof(DateTime)},
-
-        };
-
+        private readonly ColumnDefine[] mUnStringColumns =  BillTableColumns.Columns.Where(a => a.Type != typeof(String)).ToArray();
+ 
         public DataTable Load(string file)
         {
             string tempFile = Path.GetTempFileName();
@@ -61,14 +53,14 @@ namespace InsuranceCompareTool.Services
                 for (int i =  headerRow.FirstCellNum ; i < headerRow.LastCellNum; i++)
                 {
                     var hcell = headerRow.GetCell(i);
-                    var colData  = mColumns.FirstOrDefault(a => a.Name.Equals(hcell.StringCellValue)); 
+                    var colData  = mUnStringColumns.FirstOrDefault(a => a.Name.Equals(hcell.StringCellValue)); 
                     var dcell = firstDataRow.GetCell(i);
                     var cellType = colData == null?  GetType(dcell?.CellType) : colData.Type ;
                     var col = new DataColumn(hcell.StringCellValue, cellType );
                     dt.Columns.Add(col);
                 }
-                AttachColumns(dt);
-                for(int i = sheet.FirstRowNum + 1; i < sheet.LastRowNum; i++)
+                 
+                for(int i = sheet.FirstRowNum + 1; i <= sheet.LastRowNum; i++)
                 {
                     var row = sheet.GetRow(i);
                     DataRow dataRow = dt.NewRow();
@@ -132,16 +124,7 @@ namespace InsuranceCompareTool.Services
             
         }
 
-        private void AttachColumns(DataTable dt)
-        {
-            if(dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE))
-            {
-                if(!dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE_ID))
-                {
-                    dt.Columns.Add(new DataColumn(BillSheetColumns.PREVIOUS_SERVICE_ID, typeof(String)));
-                }
-            }
-        }
+ 
 
         private Type GetType(CellType? cellType)
         {

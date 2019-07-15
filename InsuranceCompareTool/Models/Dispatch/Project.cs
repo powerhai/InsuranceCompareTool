@@ -106,10 +106,16 @@ namespace InsuranceCompareTool.Models.Dispatch
         }
         [NonSerialized]
         private string mBackDispatchDesignated;
+        private bool mStopNextStep;
         public string DispatchDesignated
         {
             get => mDispatchDesignated;
             set => SetProperty(ref mDispatchDesignated, value);
+        }
+        public bool StopNextStep
+        {
+            get => mStopNextStep;
+            set => SetProperty(ref mStopNextStep, value);
         }
     }
 
@@ -140,16 +146,24 @@ namespace InsuranceCompareTool.Models.Dispatch
             get
             {
                 switch(Column)
-                {
-                    case LogicColumnName.ServiceStatus:
-                    case LogicColumnName.ServiceID:
-                    {
-                        return ColumnDataType.String;
-                    } 
+                { 
+                    case LogicColumnName.PayNo:
                     case LogicColumnName.CurrentPrice:
                     {
                         return ColumnDataType.Number;
                     }
+                    case LogicColumnName.PayAddress: 
+                    {
+                        return ColumnDataType.Address;
+                    }
+                    case LogicColumnName.DifferentArea:
+                    case LogicColumnName.DifferentService:
+                    {
+                        return ColumnDataType.Other;
+                    }
+                    case LogicColumnName.ServiceStatus:
+                    case LogicColumnName.ServiceID:
+                    case LogicColumnName.PreviousServiceID:
                     default:
                     {
                         return ColumnDataType.String;

@@ -43,6 +43,7 @@ namespace InsuranceCompareTool.ViewModels
             set {
                 SetProperty(ref mCount, value);
                 RaisePropertyChanged(nameof(Title));
+                RaisePropertyChanged(nameof(Title2));
             }
         }
         public double Price
@@ -52,6 +53,7 @@ namespace InsuranceCompareTool.ViewModels
             {
                 SetProperty(ref mPrice, value);
                 RaisePropertyChanged(nameof(Title));
+                RaisePropertyChanged(nameof(Title2));
             }
         }
         public string Area
@@ -66,9 +68,21 @@ namespace InsuranceCompareTool.ViewModels
                 var name = Name.PadRight(6, ' ');
                 var count = Count.ToString().PadLeft(5, ' ');
                 var price = Price.ToString("C").PadLeft(12, ' ');
-                return $"{name}\t{count}\t{price}";
+                return $"{name}\t{count}\t{price}\t{ID}";
             }
         }
+
+        public string Title2
+        {
+            get
+            {
+                var name = Name.PadRight(6, ' ');
+                var count = Count.ToString().PadLeft(5, ' ');
+                var price = Price.ToString("C").PadLeft(12, ' ');
+                return $"{name}\t{count}\t{price}\t{ID}\t{Area}";
+            }
+        }
+
         public string ID { get; set; }
     }
     public class AssignViewViewModel : TabViewModelBase
@@ -98,6 +112,14 @@ namespace InsuranceCompareTool.ViewModels
         private CollectionViewSource mAreaView;
         private ObservableCollection<MemberA> mMembers = new ObservableCollection<MemberA>();
         private CollectionViewSource mProjectView;
+        private ICollectionView mDataTableView;
+        private List<Member> mAllMembers;
+        private ICommand mSelectBillCommand;
+
+        private ObservableCollection<MemberA> mSelectedMembers = new ObservableCollection<MemberA>();
+        private ICommand mAssignToServiceCommand;
+        private CollectionViewSource mSelectMemberView;
+        public ObservableCollection<MemberA> SelectedMembers => mSelectedMembers;
         #endregion
         #region Properties
         public List<string> Areas
@@ -118,6 +140,22 @@ namespace InsuranceCompareTool.ViewModels
                 }
 
                 return mAreaView;
+            }
+        }
+        public CollectionViewSource SelectMemberView
+        {
+            get
+            {
+                if(mSelectMemberView == null)
+                {
+                    mSelectMemberView = new CollectionViewSource()
+                    {
+                        Source =  mSelectedMembers
+                    };
+                    
+                }
+
+                return mSelectMemberView;
             }
         }
         public ObservableCollection<MemberA> Members
@@ -196,6 +234,18 @@ namespace InsuranceCompareTool.ViewModels
                 return val.ToString("C");
             }
         }
+        public ICollectionView DataTableView
+        {
+            get
+            {
+                if(mDataTableView == null)
+                {
+                    mDataTableView = CollectionViewSource.GetDefaultView(DataTable);
+                }
+
+                return mDataTableView;
+            }
+        }
         public DataTable DataTable
         {
             get => mDataTable;
@@ -204,6 +254,7 @@ namespace InsuranceCompareTool.ViewModels
                 SetProperty(ref mDataTable, value);
                 OnPropertyChanged(nameof(IsExportEnable));
                 OnPropertyChanged(nameof(TotalMoney));
+                 
             }
         }
         public List<UIColumnData> Columns
@@ -258,10 +309,16 @@ namespace InsuranceCompareTool.ViewModels
             var filter = mFilterView.View.CurrentItem as FilterData;
             if (filter == null)
                 return;
-            if (filter.ShowAll == true)
+            if (filter.ShowType == FilterType.ShowAll)
                 DataTable.DefaultView.RowFilter = "";
-            else
+            else if (filter.ShowType == FilterType.ShowFilter)
+            {
                 DataTable.DefaultView.RowFilter = $"{BillSheetColumns.SYS_FILTER} = '{filter.Name}'";
+            }else
+            {
+                DataTable.DefaultView.RowFilter = $"{BillSheetColumns.SYS_FILTER} = '' "; 
+            }
+             
         }
         private void OnCurrentAreaChanged(object sender, EventArgs e)
         {  
@@ -288,12 +345,26 @@ namespace InsuranceCompareTool.ViewModels
             {
                 Count = DataTable.Rows.Count,
                 Name = SHOW_ALL,
-                ShowAll = true
-
+                ShowType = FilterType.ShowAll 
             });
+            var noHandledCount = 0;
+            foreach(DataRow dr in DataTable.Rows)
+            {
+                if((string)dr[BillSheetColumns.SYS_FILTER] == "")
+                {
+                    noHandledCount += 1;
+                }
+            }
+            mFilters.Add(new FilterData()
+            {
+                Count = noHandledCount,
+                Name = "无处理",
+                ShowType = FilterType.ShowNoFilter
+            });
+ 
             foreach (var step in project.Steps)
             {
-                var filter = new FilterData() { Name = step.Title };
+                var filter = new FilterData() { Name = step.Title , ShowType = FilterType.ShowFilter};
                 var count = 0;
                 foreach (DataRow row in DataTable.Rows)
                 {
@@ -419,6 +490,8 @@ namespace InsuranceCompareTool.ViewModels
         }
         private void LoadProjects()
         {
+            var curProject = this.ProjectView.View.CurrentItem as Project;
+            
             this.Projects.Clear();
             var list = mProjectCacheHelper.GetProjects();
           
@@ -426,8 +499,16 @@ namespace InsuranceCompareTool.ViewModels
             {
                 this.Projects.Add(project);
             }
-
-              this.ProjectView.View.MoveCurrentToFirst();
+            
+            this.ProjectView.View.MoveCurrentToFirst();
+            if(curProject != null)
+            {
+                var pro = this.Projects.FirstOrDefault(a => a.Guid.Equals(curProject.Guid));
+                if(pro != null)
+                {
+                    this.ProjectView.View.MoveCurrentTo(pro);
+                }
+            }
         }
         private async Task LoadMembers()
         {
@@ -451,7 +532,8 @@ namespace InsuranceCompareTool.ViewModels
             await Task.Run(() => {  memService.Load(Settings.Default.MembersFile);});
             Members.Clear();
             var mems = memService.GetZaiziMembers().Where(a=>a.Position == "客服专员");
-            foreach(var  mem in mems)
+            mAllMembers = memService.GetMembers().ToList();
+            foreach (var  mem in mems)
             {
                 Members.Add(new MemberA(){ ID = mem.ID, Name = mem.Name, Count =  0 , Area = mem.Area });
             }
@@ -462,9 +544,12 @@ namespace InsuranceCompareTool.ViewModels
         {
             var list = new List<UIColumnData>();
             var curLayout = LayoutView.View.CurrentItem as ColumnVisible;
+            var sysCols = BillTableColumns.Columns.Where(a => a.IsSystemColumn).Select(a=>a.Name).ToArray();
 
             foreach (DataColumn dataColumn in dt.Columns)
             {
+                if(sysCols.Contains(dataColumn.ColumnName))
+                    continue;
                 var col = new UIColumnData()
                 {
                     Name = dataColumn.ColumnName,
@@ -537,6 +622,24 @@ namespace InsuranceCompareTool.ViewModels
              
             IsBusy = false;
         }
+        private void CheckDatatable(DataTable dt)
+        {
+            string message = "表格中存在在职状态未知的营销员或服务专员";
+            foreach(DataRow dr in dt.Rows)
+            {
+                if(dr.IsNull(BillSheetColumns.SELLER_STATE))
+                {
+                    Xceed.Wpf.Toolkit.MessageBox.Show(message, "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    break;
+                }
+
+                if(dr.IsNull(BillSheetColumns.SYS_SERVICE_STATUS))
+                {
+                    Xceed.Wpf.Toolkit.MessageBox.Show(message, "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    break;
+                }
+            }
+        }
         private async void ExportTypeEBills()
         {
             var exporter = new BillExportTypeE();
@@ -565,24 +668,41 @@ namespace InsuranceCompareTool.ViewModels
                 System.Windows.Forms.MessageBox.Show(ex.Message, "错误", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
         }
+
         private async void AssignBills()
         {
             mLogger.Info("开始分单");
             var cur = ProjectView.View.CurrentItem as Project;
             if (cur == null)
                 return;
-            var assignHelper = new BillAssignHelper();
+            
+            var assignHelper = new BillAssignHelper(mLogger,mAllMembers);
             IsBusy = true;
-            await Task.Run(() =>
+            var ex = await Task.Run<Exception>(() =>
             {
-                assignHelper.AssignBills(DataTable, cur);
+                try
+                {
+                    assignHelper.AssignBills(DataTable, cur);
+                }
+                catch(Exception e)
+                { 
+                    return e;
+                }
 
+                return null;
             });
-            GenerateFilters(cur);
             IsBusy = false;
+            mLogger.Info("分单结束");
+            if (ex != null)
+            {
+                Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            GenerateFilters(cur);
+            
             Xceed.Wpf.Toolkit.MessageBox.Show("分单完成", "Finished", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            mLogger.Info("分单结束");
+            
         }
         private void CalculateCountForMembers(DataTable dt)
         {
@@ -673,6 +793,7 @@ namespace InsuranceCompareTool.ViewModels
                 return new DelegateCommand(async () =>
                 {
 
+
                     var openFileDialog = new OpenFileDialog
                     {
                         Filter = "Excel Files (*.xlsx)|*.xlsx",
@@ -692,24 +813,69 @@ namespace InsuranceCompareTool.ViewModels
                             {
                                 return loader.Load(openFileDialog.FileName);
                             });
-                            MakeColumns(dt);
+                            
                             var memhelp = new MemberService();
                             memhelp.Load(Settings.Default.MembersFile);
                             var mems = memhelp.GetMembers();
                             var formater = new BillFormatHelper(mLogger, mems);
                             formater.Format(dt);
                             CalculateCountForMembers(dt);
+                            CheckDatatable(dt);
+                            MakeColumns(dt);
                             DataTable = dt;
 
                         }
                         catch (Exception ex) { }
                         finally
                         {
+                            mFilters.Clear();
                             IsBusy = false;
                         }
 
                     }
                 });
+            }
+        }
+        public ICommand SelectBillCommand
+        {
+            get
+            {
+                if(mSelectBillCommand == null)
+                {
+                    mSelectBillCommand = new DelegateCommand<ObservableCollection<object>>((b) =>
+                    {
+                        this.SelectedMembers.Clear();
+                        var list  = new System.Collections.Generic.Dictionary<string,MemberA>();
+                        foreach(DataRowView row in b)
+                        {
+                            var bill = row.Row;
+                            if(!bill.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                            {
+                                var sid = Convert.ToString(bill[BillSheetColumns.CURRENT_SERVICE_ID]);
+                                if(list.ContainsKey(sid))
+                                    continue;
+                                var mem = mMembers.FirstOrDefault(a => a.ID.Equals(sid));
+                                if(mem == null)
+                                    continue;
+                                //if(mem.Status != StatusNames.ZAI_ZI)
+                                //    continue;
+                                //list[sid]  = new MemberA(){ ID = sid, Area = mem.Area, Name = mem.Name };
+                                list[sid] = mem;
+
+                            }
+                        }
+                        if(list.Count <=1)
+                            return;
+                        foreach(KeyValuePair<string, MemberA> mem in list)
+                        {
+                            this.SelectedMembers.Add(mem.Value);
+                        }
+
+                        this.SelectMemberView.View.MoveCurrentToFirst();
+                    });
+                }
+
+                return mSelectBillCommand;
             }
         }
         public ICommand AddLayoutCommand
@@ -766,6 +932,38 @@ namespace InsuranceCompareTool.ViewModels
                 return new DelegateCommand(ExportTypeEBills);
             }
         }
+        public ICommand AssignToServiceCommand
+        {
+            get
+            {
+                if(mAssignToServiceCommand == null)
+                {
+                    mAssignToServiceCommand = new DelegateCommand<IEnumerable<object>>((m) =>
+                    { 
+
+                        var mem = SelectMemberView.View.CurrentItem as MemberA;
+                        if(mem == null)
+                            return;
+
+                        foreach(DataRowView dr in m)
+                        { 
+                            var row = dr.Row;
+                            row[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
+                            row[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
+                            LogAssgign(row,mem);
+                        }
+                        this.CalculateCountForMembers(DataTable);
+
+                    });
+                }
+
+                return mAssignToServiceCommand;
+            } 
+        }
+        private void AssignTo(MemberA mem)
+        {
+            
+        }
         public ICommand AssignToSomebodyCommand
         {
             get
@@ -778,8 +976,10 @@ namespace InsuranceCompareTool.ViewModels
                     var list = mmm.Cast<DataRowView>();
                     foreach(var row in list)
                     {  
+
                         row.Row[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
                         row.Row[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
+                        LogAssgign(row.Row, mem);
                     }
                     this.CalculateCountForMembers(DataTable);
                 }));
@@ -794,7 +994,39 @@ namespace InsuranceCompareTool.ViewModels
             }
         }
         #endregion
+
+        private void LogAssgign(DataRow bill, MemberA mem)
+        {
+            var log = Convert.ToString(bill[BillSheetColumns.SYS_HISTORY]);
+            var service = "";
+            if (!bill.IsNull(BillSheetColumns.SYS_SERVICE))
+            {
+                service = Convert.ToString(bill[BillSheetColumns.SYS_SERVICE]);
+            }
+            var newlog = $"手工派单 -> {mem.Name} ({mem.ID} - {mem.Area})";
+            var history = "";
+            if (string.IsNullOrEmpty(log))
+            {
+                if (string.IsNullOrEmpty(service))
+                {
+                    history = newlog;
+                }
+                else
+                {
+                    history = $"原始客服专员： {service}\r\n{newlog}";
+                }
+
+            }
+            else
+            {
+                history = $"{log}\r\n{newlog}";
+            }
+
+            bill[BillSheetColumns.SYS_HISTORY] = history;
+        }
     }
+
+   
 
     public class UIColumnData : BindableBase
     {
@@ -810,6 +1042,13 @@ namespace InsuranceCompareTool.ViewModels
     {
         public string Name { get; set; }
         public int Count { get; set; }
-        public bool ShowAll { get; set; }
+        public FilterType ShowType { get; set; }
+    }
+    public enum  FilterType
+    {
+        ShowAll,
+        ShowFilter,
+        ShowNoFilter
+
     }
 }

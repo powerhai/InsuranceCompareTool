@@ -23,7 +23,7 @@ namespace InsuranceCompareTool.ViewModels
         private string mDepartmentsFile;
         private string mRelationFile; 
         private string mTemplateFile;
-        public override string Title { get; set; } = "Settings";
+        public override string Title { get; set; } = "设置";
         
 
         public string SourceFile

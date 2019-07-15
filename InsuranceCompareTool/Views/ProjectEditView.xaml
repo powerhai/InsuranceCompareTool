@@ -50,7 +50,11 @@
 						<ColumnDefinition Width="30"></ColumnDefinition>
 						<ColumnDefinition Width="5"></ColumnDefinition>
 						<ColumnDefinition Width="1*"></ColumnDefinition>
-						<ColumnDefinition Width="5"></ColumnDefinition>
+
+					    <ColumnDefinition Width="5"></ColumnDefinition>
+					    <ColumnDefinition Width="Auto"></ColumnDefinition>
+
+                        <ColumnDefinition Width="5"></ColumnDefinition>
 						<ColumnDefinition Width="Auto"></ColumnDefinition>
 						<ColumnDefinition Width="5"></ColumnDefinition>
 						<ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -61,20 +65,21 @@
 					<Label  Content="{Binding Index}" Margin="9,6,0,0" FontWeight="Bold" ></Label>
 					<TextBox Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" Grid.Column="2"  />
 
+                    <CheckBox Content="终止" Grid.Column="4" VerticalAlignment="Center" IsChecked="{Binding StopNextStep}"></CheckBox>
 
-					<xctk:IconButton Grid.Column="4" Command="{Binding ElementName=Root, Path=DataContext.UpStepCommand}" CommandParameter="{Binding .}">
+					<xctk:IconButton Grid.Column="6" Command="{Binding ElementName=Root, Path=DataContext.UpStepCommand}" CommandParameter="{Binding .}">
 						<xctk:IconButton.Icon>
 							<Image Source="{StaticResource IconUp}" />
 						</xctk:IconButton.Icon>
 					</xctk:IconButton>
 
-					<xctk:IconButton Grid.Column="6" Command="{Binding ElementName=Root, Path=DataContext.DownStepCommand}" CommandParameter="{Binding .}">
+					<xctk:IconButton Grid.Column="8" Command="{Binding ElementName=Root, Path=DataContext.DownStepCommand}" CommandParameter="{Binding .}">
 						<xctk:IconButton.Icon>
 							<Image Source="{StaticResource IconDown}" />
 						</xctk:IconButton.Icon>
 					</xctk:IconButton>
 
-					<xctk:IconButton Grid.Column="8" Command="{Binding ElementName=Root, Path=DataContext.DelStepCommand}" CommandParameter="{Binding .}">
+					<xctk:IconButton Grid.Column="10" Command="{Binding ElementName=Root, Path=DataContext.DelStepCommand}" CommandParameter="{Binding .}">
 						<xctk:IconButton.Icon>
 							<Image Source="{StaticResource IconDel}" />
 						</xctk:IconButton.Icon>
@@ -89,12 +94,14 @@
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="30"></ColumnDefinition>
 						<ColumnDefinition Width="5"></ColumnDefinition>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
-					</Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+					    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
 					<Image Source="{StaticResource IconFoot}"></Image>
 					<Label Content="{Binding Index}"  Margin="9,6,0,0" FontWeight="Bold"></Label>
 					<TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" Grid.Column="2"  />
-				</Grid>
+				    <CheckBox Content="终止" Grid.Column="3" VerticalAlignment="Center" IsChecked="{Binding StopNextStep,Mode=OneWay}" IsEnabled="False"></CheckBox>
+                </Grid>
 
 			</Border>
 		</ControlTemplate>
@@ -160,7 +167,7 @@
 			<GroupBox  Header="过滤" Grid.Column="2" Grid.Row="2" Padding="5" IsEnabled="{Binding ElementName=DispatchBox,Path=IsEnabled}">
 				 
 				<Grid>
-					<ListView ItemsSource="{Binding Project.StepView.View.CurrentItem.Filters}">
+					<ListView ItemsSource="{Binding Project.StepView.View.CurrentItem.Filters}" IsSynchronizedWithCurrentItem="True">
 
 
 						<ListView.View>
@@ -187,8 +194,17 @@
 													<ComboBox.Style>
 														<Style TargetType="ComboBox">
 															<Style.Triggers>
-																<DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.String}">
-																	<Setter   Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorTypes}"></Setter>
+															    <DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.Other}">
+                                                                    <Setter   Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorNoneTypes}"></Setter>
+                                                                
+                                                                    <Setter   Property="Visibility" Value="Collapsed"></Setter>
+															    </DataTrigger>
+
+                                                                <DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.Address}">
+                                                                    <Setter   Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorTypesAddress}"></Setter>
+															    </DataTrigger>
+                                                                <DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.String}">
+                                                                    <Setter   Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorTypesString}"></Setter>
 																</DataTrigger>
 																<DataTrigger Binding="{Binding ElementName=box,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.Number}">
 																	<Setter  Property="ItemsSource" Value="{Binding ElementName=Root,Path=DataContext.OperatorTypesForNumber}"></Setter>
@@ -204,7 +220,17 @@
 									<GridViewColumn Header="值"   Width="100">
 										<GridViewColumn.CellTemplate>
 											<DataTemplate>
-												<TextBox Text="{Binding Value}"></TextBox>
+                                                <TextBox Text="{Binding Value}" x:Name="boxValue"  >
+
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+												            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ElementName=boxValue,Path=DataContext.DataType}" Value="{x:Static domain:ColumnDataType.Other}">
+                                                                   
+                                                                    <Setter   Property="Visibility" Value="Collapsed"></Setter>
+                                                                </DataTrigger> 
+                                                                </Style.Triggers></Style></TextBox.Style>
+                                                </TextBox>
 											</DataTemplate>
 										</GridViewColumn.CellTemplate>
 									</GridViewColumn>

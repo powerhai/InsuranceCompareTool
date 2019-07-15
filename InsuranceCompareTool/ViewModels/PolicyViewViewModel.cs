@@ -15,6 +15,7 @@ using InsuranceCompareTool.Models;
 using InsuranceCompareTool.Models.Dispatch;
 using InsuranceCompareTool.Properties;
 using InsuranceCompareTool.Views;
+using Microsoft.Win32;
 using Prism.Interactivity.InteractionRequest;
 using Unity;
 namespace InsuranceCompareTool.ViewModels
@@ -23,7 +24,7 @@ namespace InsuranceCompareTool.ViewModels
     {
         private readonly IUnityContainer mContainer;
         private ProjectCacheHelper mProjectCacheHelper = new ProjectCacheHelper();
-        public override string Title { get; set; } = "Policy";
+        public override string Title { get; set; } = "分单方案";
 
         public InteractionRequest<EditProjectNotification> EditProjectNotification { get; } = new InteractionRequest<EditProjectNotification>();
 
@@ -152,6 +153,7 @@ namespace InsuranceCompareTool.ViewModels
                             ms.Seek(0, SeekOrigin.Begin);
                             var obj =xml.Deserialize(ms) as Project;
                             obj.Title += " - 2";
+                            obj.Guid = Guid.NewGuid();
                             this.mProjects.Add(obj); 
                         }
                          
@@ -191,10 +193,79 @@ namespace InsuranceCompareTool.ViewModels
                 });
             }
         }
+        public ICommand ImportCommand => new DelegateCommand(Import);
+        public ICommand ExportCommand => new DelegateCommand(Export);
         #endregion
 
+        private void Import()
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Haiser Files (*.hai)|*.hai", 
+            };
+
+            var result = openFileDialog.ShowDialog();
+            if(result == true)
+            {
+                var json = "";
+                using(var c = openFileDialog.OpenFile())
+                {
+                    var bytes = new byte[c.Length];
+                    c.Read(bytes, 0, bytes.Length);
+                    json = System.Text.Encoding.UTF8.GetString(bytes);
+                }
+                 
+                var rv = mProjectCacheHelper.SaveProjects(json);
+                if(rv)
+                {
+                    Xceed.Wpf.Toolkit.MessageBox.Show("导入成功", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                    mIsLoaded = false;
+                    mProjects.Clear();
+                    LoadData();
+                }
+                else
+                {
+                    Xceed.Wpf.Toolkit.MessageBox.Show("导入失败", "失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        private void Export()
+        {
+            var saveFile = new SaveFileDialog()
+            {
+                FileName = $"分单策略 - {DateTime.Now.ToString("MM-dd-hh-ss")}.hai"
+            }; 
+            var result = saveFile.ShowDialog();
+            if(result == true)
+            {
+                try
+                {
+                     using (var c = saveFile.OpenFile())
+                    {
+                        var bytes = System.Text.Encoding.UTF8.GetBytes(Settings.Default.Projects);
+                        c.Write(bytes,0, bytes.Length); 
+                    }                    
+                }
+                catch(Exception ex)
+                {
+                    Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message, "导出失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                } 
+            }
+        }
+        private ListCollectionView mProjectView;
         private ObservableCollection<Project> mProjects = new ObservableCollection<Project>();
-        public ListCollectionView ProjectView => new ListCollectionView(mProjects) ;
+        public ListCollectionView ProjectView
+        {
+            get
+            {
+                if(mProjectView == null)
+                {
+                    mProjectView = new ListCollectionView(mProjects); 
+                } 
+                return mProjectView;
+            }
+        }
         public override void Leave()
         {
             SaveCommand.Execute(null);
