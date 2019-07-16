@@ -29,7 +29,7 @@ namespace InsuranceCompareTool.Core
             AttachColumnServiceStatus(dt);
             AttachColumnPreviousServiceID(dt);
             AttachColumnReAssign(dt);
-            
+            AttachColumnClientArea(dt);
             FormatPreviousService(dt);
             FormatClientArea(dt);
             FormatReAssign(dt);
@@ -118,6 +118,16 @@ namespace InsuranceCompareTool.Core
                     dt.Columns.Add(column.Name, column.Type);
                 }
             }
+        }
+
+        private void AttachColumnClientArea(DataTable dt)
+        {
+            var col = BillTableColumns.COL_CLIENT_AREA;
+            if (dt.Columns.Contains(col.Name))
+            {
+                return;
+            }
+            dt.Columns.Add(col.Name, col.Type);
         }
         private void AttachColumnServiceStatus(DataTable dt)
         {
@@ -272,7 +282,7 @@ namespace InsuranceCompareTool.Core
             var cols = new List<string>();
             foreach (DataColumn column in bill.Table.Columns)
             {
-                if (column.ColumnName.Contains(BillSheetColumns.PAY_ADDRESS))
+                if (column.ColumnName.Contains("地址"))
                 {
                     cols.Add(column.ColumnName);
                 }
@@ -284,8 +294,8 @@ namespace InsuranceCompareTool.Core
             {
                 if (!bill.IsNull(col))
                 {
-                    address = (string)bill[col];
-                    break;
+                    address += (string)bill[col];
+                    continue;
                 }
             }
 
@@ -300,12 +310,20 @@ namespace InsuranceCompareTool.Core
             var area = areas.FirstOrDefault(a => a != AreaNames.JH);
             if (string.IsNullOrEmpty(area))
             {
-                area = AreaNames.JH;
+                if(areas.Contains(AreaNames.JH))
+                {
+                    area = AreaNames.JH;
+                }
             }
             return area;
         }
         private List<string> GetAreas(string address)
         {
+            string[] mJhAddress = new string[] { "永康街", "义乌街", "浦江街", "兰溪街", "东阳街", "武义街", "磐安街", "婺城区", "金东区" };
+            foreach(var jh in mJhAddress)
+            {
+                address = address.Replace(jh, AreaNames.JH );
+            }
             var list = new List<string>();
             foreach (var area in AreaNames.Areas)
             {

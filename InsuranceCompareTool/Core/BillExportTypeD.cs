@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using InsuranceCompareTool.Properties;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 namespace InsuranceCompareTool.Core
@@ -100,8 +101,14 @@ namespace InsuranceCompareTool.Core
                         cell.SetCellValue((int)cellValue);
                     }
                     else if(dataType == typeof(DateTime))
-                    {
+                    { 
                         cell.SetCellValue((DateTime)cellValue);
+
+                        var cellStyle = sheet.Workbook.CreateCellStyle() ; 
+                        var format = sheet.Workbook.CreateDataFormat() ;
+                        cellStyle.DataFormat = format.GetFormat("yyyy/mm/dd"); 
+                        cell.CellStyle = cellStyle;
+                         
                     }
                     else if(dataType == typeof(DBNull))
                     {

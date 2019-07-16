@@ -24,7 +24,7 @@ namespace InsuranceCompareTool.Domain
         {
             Name = BillSheetColumns.CLIENT_AREA,
             Type = typeof(String),
-            IsSystemColumn = true
+            IsSystemColumn = false
         };
 
         public static readonly ColumnDefine COL_ASSIGNED_SERVICE_ID = new ColumnDefine()

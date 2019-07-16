@@ -85,8 +85,13 @@ namespace InsuranceCompareTool.Core
                         cell.SetCellValue((int)cellValue);
                     }
                     else if (dataType == typeof(DateTime))
-                    {
+                    { 
+                        var cellStyle = sheet.Workbook.CreateCellStyle();
+                        var format = sheet.Workbook.CreateDataFormat();
+                        cellStyle.DataFormat = format.GetFormat("yyyy/mm/dd");
+                        cell.CellStyle = cellStyle;
                         cell.SetCellValue((DateTime)cellValue);
+                        
                     }
                     else if (dataType == typeof(DBNull))
                     {
