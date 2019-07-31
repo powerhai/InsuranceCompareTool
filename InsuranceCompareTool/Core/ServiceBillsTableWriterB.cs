@@ -129,9 +129,7 @@ namespace InsuranceCompareTool.Core {
         }
         private void WriteBillRow(Bill bill, ISheet sheet, SheetTemplate template,string areaNameA, string areaNameB)
         {
-            //todo writed by haiser
-            if (bill.PayDate > new DateTime(2019, 9, 3))
-                return;
+
             try
             {
                 

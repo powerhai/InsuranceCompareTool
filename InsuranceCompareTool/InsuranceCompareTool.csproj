@@ -64,9 +64,11 @@
     <Compile Include="Core\BillExportTypeC.cs" />
     <Compile Include="Core\BillExportTypeD.cs" />
     <Compile Include="Core\BillAssignHelper.cs" />
+    <Compile Include="Core\BillExportTypeK.cs" />
     <Compile Include="Core\BillFormatHelper.cs" />
     <Compile Include="Core\BillExportTypeE.cs" />
     <Compile Include="Core\ColumnLayoutHelper.cs" />
+    <Compile Include="Core\MemberExportHelper.cs" />
     <Compile Include="Domain\BillTableColumns.cs" />
     <Compile Include="Domain\ColumnDefine.cs" />
     <Compile Include="Event\ProjectUpdatedEvent.cs" />
@@ -77,11 +79,15 @@
     <Compile Include="Domain\OperatorType.cs" />
     <Compile Include="Domain\ColumnDataType.cs" />
     <Compile Include="Modeling\Class1.cs" />
+    <Compile Include="Models\MemberA.cs" />
     <Compile Include="Models\Dispatch\Project.cs" />
     <Compile Include="Models\ViewModelBase.cs" />
     <Compile Include="Services\BillLoadHelper.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="ShareCommon\ShowTabItemAction.cs" />
+    <Compile Include="ShareCommon\ShowTabItemNotification.cs" />
+    <Compile Include="ShareCommon\ValueConverter\IntToEnableConverter.cs" />
     <Compile Include="ShareCommon\ValueConverter\MultiParameterConverter.cs" />
     <Compile Include="ShareCommon\VisualLogger.cs" />
     <Compile Include="ShareCommon\EnumPackager.cs" />

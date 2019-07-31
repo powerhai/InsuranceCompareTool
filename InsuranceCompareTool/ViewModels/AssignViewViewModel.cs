@@ -9,6 +9,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,80 +22,27 @@ using InsuranceCompareTool.Models;
 using InsuranceCompareTool.Models.Dispatch;
 using InsuranceCompareTool.Properties;
 using InsuranceCompareTool.Services;
+using InsuranceCompareTool.ShareCommon;
 using log4net;
+using Prism.Interactivity.InteractionRequest;
 using DataGrid = System.Windows.Controls.DataGrid;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 namespace InsuranceCompareTool.ViewModels
 {
-    public class MemberA : BindableBase
-    {
-        public string Name
-        {
-            get => mName;
-            set => SetProperty(ref mName, value);
-        }
-        private int mCount;
-        private string mName;
-        private string mArea;
-        private double mPrice;
-        public int Count
-        {
-            get => mCount;
-            set {
-                SetProperty(ref mCount, value);
-                RaisePropertyChanged(nameof(Title));
-                RaisePropertyChanged(nameof(Title2));
-            }
-        }
-        public double Price
-        {
-            get => mPrice;
-            set
-            {
-                SetProperty(ref mPrice, value);
-                RaisePropertyChanged(nameof(Title));
-                RaisePropertyChanged(nameof(Title2));
-            }
-        }
-        public string Area
-        {
-            get => mArea;
-            set => SetProperty(ref mArea, value);
-        }
-        public string Title
-        {
-            get
-            {
-                var name = Name.PadRight(6, ' ');
-                var count = Count.ToString().PadLeft(5, ' ');
-                var price = Price.ToString("C").PadLeft(12, ' ');
-                return $"{name}\t{count}\t{price}\t{ID}";
-            }
-        }
 
-        public string Title2
-        {
-            get
-            {
-                var name = Name.PadRight(6, ' ');
-                var count = Count.ToString().PadLeft(5, ' ');
-                var price = Price.ToString("C").PadLeft(12, ' ');
-                return $"{name}\t{count}\t{price}\t{ID}\t{Area}";
-            }
-        }
 
-        public string ID { get; set; }
-    }
     public class AssignViewViewModel : TabViewModelBase
     {
-        private readonly ILog mLogger;
         #region Fields
+        private readonly ILog mLogger;
         private const string SHOW_ALL = "显示全部";
         private ColumnLayoutHelper mColumnLayoutHelper = new ColumnLayoutHelper();
         private ProjectCacheHelper mProjectCacheHelper = new ProjectCacheHelper();
         private ObservableCollection<ColumnVisible> mColumnLayouts = new ObservableCollection<ColumnVisible>();
         private readonly ObservableCollection<Project> mProjects = new ObservableCollection<Project>();
-
+        private List<DataRow> mSelectedRows = new List<DataRow>();
+        private List<DataRow> mSelectedCachedRows = new List<DataRow>();
+        private List<DataRow> mCurrentSelectedRows = new List<DataRow>();
         private DataTable mDataTable;
         private List<UIColumnData> mColumns;
         private CollectionViewSource mLayoutView;
@@ -108,7 +56,7 @@ namespace InsuranceCompareTool.ViewModels
         private DateTime mLastMemberFileWriteTime = new DateTime(1900);
         private bool mIsLoaded = false;
         private ICommand mAssignToSomebodyCommand;
-        private List<string> mAreas = new List<string>(){AreaNames.JH, AreaNames.YK, AreaNames.YW, AreaNames.WY, AreaNames.PJ, AreaNames.LX, AreaNames.QT, AreaNames.DY};
+        private List<string> mAreas = new List<string>() { AreaNames.JH, AreaNames.YK, AreaNames.YW, AreaNames.WY, AreaNames.PJ, AreaNames.LX, AreaNames.QT, AreaNames.DY };
         private CollectionViewSource mAreaView;
         private ObservableCollection<MemberA> mMembers = new ObservableCollection<MemberA>();
         private CollectionViewSource mProjectView;
@@ -119,18 +67,40 @@ namespace InsuranceCompareTool.ViewModels
         private ObservableCollection<MemberA> mSelectedMembers = new ObservableCollection<MemberA>();
         private ICommand mAssignToServiceCommand;
         private CollectionViewSource mSelectMemberView;
-        public ObservableCollection<MemberA> SelectedMembers => mSelectedMembers;
+        private CollectionViewSource mReportMemberView;
+        private string mCurrentArea;
+        private DataTable mCacheDataTable;
+        private ICommand mSelectCachedBillsCommand;
+        private ICommand mCopyBillContentCommand;
+        private List<string> mCopyableColumns;
+        private ICommand mAssignToServiceBCommand;
+        private ICommand mAssignToSomebodyByMenuCommand;
+        private ICommand mSelectTabItemCommand;
         #endregion
         #region Properties
+        public ObservableCollection<MemberA> SelectedMembers => mSelectedMembers;
+        public InteractionRequest<ShowTabItemNotification> SelectItemNotification { get; } = new InteractionRequest<ShowTabItemNotification>();
         public List<string> Areas
         {
-            get => mAreas; 
+            get => mAreas;
+        }
+
+        public List<DataRow> SelectedCachedRows
+        {
+            get => mSelectedCachedRows;
+            set => SetProperty(ref mSelectedCachedRows, value);
+        }
+        public List<DataRow> SelectedRows
+        {
+            get => mSelectedRows;
+            set => SetProperty(ref mSelectedRows, value);
+
         }
         public CollectionViewSource AreaView
         {
             get
             {
-                if(mAreaView == null)
+                if (mAreaView == null)
                 {
                     mAreaView = new CollectionViewSource()
                     {
@@ -146,21 +116,33 @@ namespace InsuranceCompareTool.ViewModels
         {
             get
             {
-                if(mSelectMemberView == null)
+                if (mSelectMemberView == null)
                 {
                     mSelectMemberView = new CollectionViewSource()
                     {
-                        Source =  mSelectedMembers
-                    };
-                    
-                }
-
+                        Source = mSelectedMembers
+                    }; 
+                } 
                 return mSelectMemberView;
+            }
+        }
+ 
+        public CollectionViewSource ReportMembersView
+        {
+            get
+            {
+                if(mReportMemberView == null)
+                {
+                    mReportMemberView = new CollectionViewSource(){Source = Members };
+                    mReportMemberView.SortDescriptions.Add(new SortDescription("Count", ListSortDirection.Descending));
+                    mReportMemberView.View.Filter += FilterReportMember;
+                } 
+                return mReportMemberView;
             }
         }
         public ObservableCollection<MemberA> Members
         {
-            get => mMembers; 
+            get => mMembers;
         }
         public CollectionViewSource MemberView
         {
@@ -169,7 +151,7 @@ namespace InsuranceCompareTool.ViewModels
                 if (mMemberView == null)
                 {
                     mMemberView = new CollectionViewSource() { Source = Members };
-                    mMemberView.SortDescriptions.Add(new SortDescription("Price", ListSortDirection.Ascending));
+                    mMemberView.SortDescriptions.Add(new SortDescription("Count", ListSortDirection.Descending));
                     mMemberView.View.Filter += FilterMember;
                 }
                 return mMemberView;
@@ -189,10 +171,15 @@ namespace InsuranceCompareTool.ViewModels
                     {
                         Source = mFilters
                     };
-                    mFilterView.View.CurrentChanged += View_CurrentChanged;
+                    mFilterView.View.CurrentChanged += ViewCurrentChanged;
                 }
                 return mFilterView;
             }
+        }
+        public List<string> CopyableColumns
+        {
+            get => mCopyableColumns;
+            set => SetProperty(ref mCopyableColumns, value);
         }
         public bool IsBusy
         {
@@ -223,11 +210,11 @@ namespace InsuranceCompareTool.ViewModels
 
                 foreach (DataRow row in DataTable.Rows)
                 {
-                    
+
                     if (row.Table.Columns.Contains(BillSheetColumns.BILL_PRICE))
                     {
                         double bf = 0;
-                        double.TryParse( row[BillSheetColumns.BILL_PRICE].ToString(), out bf);
+                        double.TryParse(row[BillSheetColumns.BILL_PRICE].ToString(), out bf);
                         val += bf;
                     }
                 }
@@ -238,12 +225,21 @@ namespace InsuranceCompareTool.ViewModels
         {
             get
             {
-                if(mDataTableView == null)
+                if (mDataTableView == null)
                 {
                     mDataTableView = CollectionViewSource.GetDefaultView(DataTable);
                 }
 
                 return mDataTableView;
+            }
+        }
+        public DataTable CacheDataTable
+        {
+            get => mCacheDataTable;
+            set
+            {
+                SetProperty(ref mCacheDataTable, value);
+                OnPropertyChanged();
             }
         }
         public DataTable DataTable
@@ -254,7 +250,7 @@ namespace InsuranceCompareTool.ViewModels
                 SetProperty(ref mDataTable, value);
                 OnPropertyChanged(nameof(IsExportEnable));
                 OnPropertyChanged(nameof(TotalMoney));
-                 
+
             }
         }
         public List<UIColumnData> Columns
@@ -283,7 +279,7 @@ namespace InsuranceCompareTool.ViewModels
         {
             get
             {
-                if(mProjectView == null)
+                if (mProjectView == null)
                 {
                     mProjectView = new CollectionViewSource() { Source = mProjects };
                 }
@@ -293,10 +289,40 @@ namespace InsuranceCompareTool.ViewModels
         }
         #endregion
         #region Methods
+        private void LogAssgign(DataRow bill, MemberA mem)
+        {
+            var log = Convert.ToString(bill[BillSheetColumns.SYS_HISTORY]);
+            var service = "";
+            if (!bill.IsNull(BillSheetColumns.SYS_SERVICE))
+            {
+                service = Convert.ToString(bill[BillSheetColumns.SYS_SERVICE]);
+            }
+            var newlog = $"手工派单 -> {mem.Name} ({mem.ID} - {mem.Area})";
+            var history = "";
+            if (string.IsNullOrEmpty(log))
+            {
+                if (string.IsNullOrEmpty(service))
+                {
+                    history = newlog;
+                }
+                else
+                {
+                    history = $"原始客服专员： {service}\r\n{newlog}";
+                }
+
+            }
+            else
+            {
+                history = $"{log}\r\n{newlog}";
+            }
+
+            bill[BillSheetColumns.SYS_HISTORY] = history;
+        }
+ 
         private bool FilterMember(object obj)
         {
             var area = AreaView.View.CurrentItem as string;
-            if(string.IsNullOrEmpty(area))
+            if (string.IsNullOrEmpty(area))
             {
                 return true;
             }
@@ -304,7 +330,19 @@ namespace InsuranceCompareTool.ViewModels
             var ob = obj as MemberA;
             return ob.Area == area;
         }
-        private void View_CurrentChanged(object sender, EventArgs e)
+
+        private bool FilterReportMember(object obj)
+        {
+             
+            if (string.IsNullOrEmpty(mCurrentArea))
+            {
+                return true;
+            }
+
+            var ob = obj as MemberA;
+            return ob.Area == mCurrentArea || ob.Count > 0;
+        }
+        private void ViewCurrentChanged(object sender, EventArgs e)
         {
             var filter = mFilterView.View.CurrentItem as FilterData;
             if (filter == null)
@@ -314,14 +352,17 @@ namespace InsuranceCompareTool.ViewModels
             else if (filter.ShowType == FilterType.ShowFilter)
             {
                 DataTable.DefaultView.RowFilter = $"{BillSheetColumns.SYS_FILTER} = '{filter.Name}'";
-            }else
-            {
-                DataTable.DefaultView.RowFilter = $"{BillSheetColumns.SYS_FILTER} = '' "; 
             }
-             
+            else
+            {
+                DataTable.DefaultView.RowFilter = $"{BillSheetColumns.SYS_FILTER} = '' ";
+            }
+
         }
         private void OnCurrentAreaChanged(object sender, EventArgs e)
-        {  
+        {
+            mCurrentArea = AreaView.View.CurrentItem as string;
+            ReportMembersView.View.Refresh();
             MemberView.View.Refresh();
             MemberView.View.MoveCurrentToFirst();
         }
@@ -345,12 +386,12 @@ namespace InsuranceCompareTool.ViewModels
             {
                 Count = DataTable.Rows.Count,
                 Name = SHOW_ALL,
-                ShowType = FilterType.ShowAll 
+                ShowType = FilterType.ShowAll
             });
             var noHandledCount = 0;
-            foreach(DataRow dr in DataTable.Rows)
+            foreach (DataRow dr in DataTable.Rows)
             {
-                if((string)dr[BillSheetColumns.SYS_FILTER] == "")
+                if ((string)dr[BillSheetColumns.SYS_FILTER] == "")
                 {
                     noHandledCount += 1;
                 }
@@ -361,10 +402,10 @@ namespace InsuranceCompareTool.ViewModels
                 Name = "无处理",
                 ShowType = FilterType.ShowNoFilter
             });
- 
+
             foreach (var step in project.Steps)
             {
-                var filter = new FilterData() { Name = step.Title , ShowType = FilterType.ShowFilter};
+                var filter = new FilterData() { Name = step.Title, ShowType = FilterType.ShowFilter };
                 var count = 0;
                 foreach (DataRow row in DataTable.Rows)
                 {
@@ -375,20 +416,23 @@ namespace InsuranceCompareTool.ViewModels
                 }
 
                 filter.Count = count;
-                mFilters.Add(filter);
+                if (filter.Count > 0)
+                    mFilters.Add(filter);
             }
 
         }
-        private async void ExportTypeDBills()
+
+        private async void ExportDBills(List<DataRow> rows)
         {
-            var exporter = new BillExportTypeD();
-            var targetPath = $"{Settings.Default.WorkPath}\\上传保单\\{DateTime.Now:yyyy-MM-dd--ss-mm}";
+            var exporter = new BillExportTypeK();
+            var targetPath = $"{Settings.Default.WorkPath}\\上传保单\\{DateTime.Now:yyyy-MM-dd hh-mm-ss}";
             IsBusy = true;
             await Task.Run(() =>
             {
                 try
                 {
-                    exporter.Export(targetPath, DataTable, Columns.Where(a => a.IsVisible).Select(a => a.Name).ToList());
+
+                    exporter.Export(targetPath, rows, DataTable);
 
                 }
                 catch (Exception ex)
@@ -407,7 +451,19 @@ namespace InsuranceCompareTool.ViewModels
             {
                 System.Windows.Forms.MessageBox.Show(ex.Message, "错误", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
+        }
 
+
+
+
+        private async void ExportDBillsAll()
+        { 
+            var rows = new List<DataRow>();
+            foreach (DataRow row in mCurrentDataTable.Rows)
+            {
+                rows.Add(row);
+            }
+            ExportDBills(rows);
         }
         private void SaveLayout()
         {
@@ -491,20 +547,20 @@ namespace InsuranceCompareTool.ViewModels
         private void LoadProjects()
         {
             var curProject = this.ProjectView.View.CurrentItem as Project;
-            
+
             this.Projects.Clear();
             var list = mProjectCacheHelper.GetProjects();
-          
+
             foreach (var project in list)
             {
                 this.Projects.Add(project);
             }
-            
+
             this.ProjectView.View.MoveCurrentToFirst();
-            if(curProject != null)
+            if (curProject != null)
             {
                 var pro = this.Projects.FirstOrDefault(a => a.Guid.Equals(curProject.Guid));
-                if(pro != null)
+                if (pro != null)
                 {
                     this.ProjectView.View.MoveCurrentTo(pro);
                 }
@@ -515,12 +571,12 @@ namespace InsuranceCompareTool.ViewModels
             if (string.IsNullOrEmpty(Settings.Default.MembersFile))
                 return;
             FileInfo fi = new FileInfo(Settings.Default.MembersFile);
-            if(!fi.Exists)
+            if (!fi.Exists)
                 return;
 
-            if(mIsLoaded == true)
+            if (mIsLoaded == true)
             {
-                if(   fi.LastWriteTime == mLastMemberFileWriteTime)
+                if (fi.LastWriteTime == mLastMemberFileWriteTime)
                     return;
             }
 
@@ -529,13 +585,13 @@ namespace InsuranceCompareTool.ViewModels
             mLastMemberFileWriteTime = fi.LastWriteTime;
 
             var memService = new MemberService();
-            await Task.Run(() => {  memService.Load(Settings.Default.MembersFile);});
+            await Task.Run(() => { memService.Load(Settings.Default.MembersFile); });
             Members.Clear();
-            var mems = memService.GetZaiziMembers().Where(a=>a.Position == "客服专员");
+            var mems = memService.GetZaiziMembers().Where(a => a.Position == "客服专员");
             mAllMembers = memService.GetMembers().ToList();
-            foreach (var  mem in mems)
+            foreach (var mem in mems)
             {
-                Members.Add(new MemberA(){ ID = mem.ID, Name = mem.Name, Count =  0 , Area = mem.Area });
+                Members.Add(new MemberA() { ID = mem.ID, Name = mem.Name, Count = 0, Area = mem.Area });
             }
 
             MemberView.View.MoveCurrentToFirst();
@@ -544,25 +600,49 @@ namespace InsuranceCompareTool.ViewModels
         {
             var list = new List<UIColumnData>();
             var curLayout = LayoutView.View.CurrentItem as ColumnVisible;
-            var sysCols = BillTableColumns.Columns.Where(a => a.IsSystemColumn).Select(a=>a.Name).ToArray();
+            List<string> sysCols = new List<string>();
+            List<string> copyableCols = new List<string>();
 
+            foreach (ColumnDefine col in BillTableColumns.Columns.Where(a => a.IsSystemColumn))
+            {
+                sysCols.AddRange(col.Name);
+            }
+
+            var index = 0;
             foreach (DataColumn dataColumn in dt.Columns)
             {
-                if(sysCols.Contains(dataColumn.ColumnName))
+                if (sysCols.Contains(dataColumn.ColumnName))
                     continue;
+                ColumnDefine defineCol = null;
+                foreach(var colData in BillTableColumns.Columns)
+                {
+                    if(colData.Name.Contains(dataColumn.ColumnName))
+                    {
+                        defineCol = colData;
+                        if(colData.IsCopyAble)
+                        {
+                            copyableCols.Add(dataColumn.ColumnName);
+                        }
+                        break;
+                    }
+                }
                 var col = new UIColumnData()
                 {
                     Name = dataColumn.ColumnName,
-                    IsVisible = true
+                    IsVisible = true,
+                    Sort =  defineCol?.Sort ?? 0,
+                    Index = index ++
                 };
+
                 if (curLayout != null)
                 {
                     col.IsVisible = curLayout.Columns.Contains(col.Name);
                 }
                 list.Add(col);
             }
-
+            list.Sort((a, b) => { return b.Sort - a.Sort;});
             Columns = list;
+            CopyableColumns = copyableCols;
         }
         private void LayoutChanged(object sender, EventArgs e)
         {
@@ -585,57 +665,66 @@ namespace InsuranceCompareTool.ViewModels
         private async void ExportTypeCBills()
         {
             IsBusy = true;
-            await  Task.Run(() =>
-            {
-                try
-                {
-                    var templateService = new ExportTemplateService();
-                    var billLoader = new BillLoadService();
-                    var memberService =new MemberService();
-                    var billMemberService = new BillMemberService();
-                    var billAreaService = new BillAreaService();
-                    var billExportTypeCService = new BillExportTypeCService();
-                    
-                    templateService.Load(Settings.Default.TemplateFile); 
-                    billLoader.Load(DataTable); 
-                    memberService.Load(Settings.Default.MembersFile); 
-                    var bills = billLoader.GetBills();
-                    var members = memberService.GetMembers();
-                    
-                    
-                    billMemberService.CalculateMembers(bills, members);
-                    billAreaService.CalculateArea(bills);
-                    var path = Settings.Default.WorkPath + $"{DateTime.Now.AddMonths(1):yyyy-MM}\\地区收费清单";
+            var exception = await Task.Run(() =>
+          {
+              try
+              {
+                  var templateService = new ExportTemplateService();
+                  var billLoader = new BillLoadService();
+                  var memberService = new MemberService();
+                  var billMemberService = new BillMemberService();
+                  var billAreaService = new BillAreaService();
+                  var billExportTypeCService = new BillExportTypeCService();
 
-                    billExportTypeCService.Export(path, bills, members);
-                    Process.Start(path);
-                }
-                catch (InvalidOperationException e1)
-                {
-                    MessageBox.Show("操作不能继续：文件正被使用!", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            });
-             
+                  templateService.Load(Settings.Default.TemplateFile);
+                  billLoader.Load(DataTable);
+                  memberService.Load(Settings.Default.MembersFile);
+                  var bills = billLoader.GetBills();
+                  var members = memberService.GetMembers();
+
+
+                  billMemberService.CalculateMembers(bills, members);
+                  billAreaService.CalculateArea(bills);
+                  var path = Settings.Default.WorkPath + $"{DateTime.Now.AddMonths(1):yyyy-MM}\\地区收费清单";
+
+                  billExportTypeCService.Export(path, bills, members);
+                  Process.Start(path);
+              }
+              catch (InvalidOperationException)
+              {
+                  return new Exception("操作不能继续：文件正被使用!");
+              }
+              catch (Exception ex)
+              {
+                  return ex;
+              }
+
+              return null;
+          });
+            if (exception != null)
+            {
+                Xceed.Wpf.Toolkit.MessageBox.Show(exception.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
             IsBusy = false;
         }
         private void CheckDatatable(DataTable dt)
         {
-            string message = "表格中存在在职状态未知的营销员或服务专员";
-            foreach(DataRow dr in dt.Rows)
+            foreach (DataRow dr in dt.Rows)
             {
-                if(dr.IsNull(BillSheetColumns.SELLER_STATE))
+                if (dt.Columns.Contains(BillSheetColumns.SELLER_STATE))
                 {
-                    Xceed.Wpf.Toolkit.MessageBox.Show(message, "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    break;
+                    if (dr.IsNull(BillSheetColumns.SELLER_STATE))
+                    {
+
+                        mLogger.Error($"{dr[BillSheetColumns.SELLER_NAME]} 的在职状态未知");
+                        break;
+                    }
                 }
 
-                if(dr.IsNull(BillSheetColumns.SYS_SERVICE_STATUS))
+
+                if (dr.IsNull(BillSheetColumns.SYS_SERVICE_STATUS))
                 {
-                    Xceed.Wpf.Toolkit.MessageBox.Show(message, "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    mLogger.Error($"{dr[BillSheetColumns.CURRENT_SERVICE_NAME]} 的在职状态未知");
                     break;
                 }
             }
@@ -649,7 +738,7 @@ namespace InsuranceCompareTool.ViewModels
             {
                 try
                 {
-                    exporter.Export(targetPath, DataTable, Columns.Select(a => a.Name).ToList()); 
+                    exporter.Export(targetPath, DataTable, Columns.Select(a => a.Name).ToList());
                 }
                 catch (Exception ex)
                 {
@@ -669,23 +758,48 @@ namespace InsuranceCompareTool.ViewModels
             }
         }
 
+        private DataRow GetRow(DataTable dt, DataRow dr)
+        {
+            var guid = (Guid)dr[BillSheetColumns.SYS_GUID];
+            DataRow anotherRow = null;
+            foreach (DataRow row in dt.Rows)
+            {
+                if (((Guid)row[BillSheetColumns.SYS_GUID]).Equals(guid))
+                {
+                    anotherRow = row;
+                    break;
+                }
+            }
+
+            return anotherRow;
+        }
+
         private async void AssignBills()
         {
             mLogger.Info("开始分单");
             var cur = ProjectView.View.CurrentItem as Project;
             if (cur == null)
                 return;
-            
-            var assignHelper = new BillAssignHelper(mLogger,mAllMembers);
+
+            var assignHelper = new BillAssignHelper(mLogger, mAllMembers);
             IsBusy = true;
             var ex = await Task.Run<Exception>(() =>
             {
                 try
                 {
                     assignHelper.AssignBills(DataTable, cur);
+                    var rows = GetChangedRows();
+                    foreach(var row in rows)
+                    {
+                        var dr = GetRow(CacheDataTable, row); 
+                        if(dr != null)
+                        {
+                            CopyAssign(row,dr);
+                        }
+                    }
                 }
-                catch(Exception e)
-                { 
+                catch (Exception e)
+                {
                     return e;
                 }
 
@@ -699,14 +813,71 @@ namespace InsuranceCompareTool.ViewModels
                 return;
             }
             GenerateFilters(cur);
-            
-            Xceed.Wpf.Toolkit.MessageBox.Show("分单完成", "Finished", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            
+            Xceed.Wpf.Toolkit.MessageBox.Show("分单完成", "Finished", MessageBoxButton.OK, MessageBoxImage.Information);
+            SelectItemNotification?.Raise(new ShowTabItemNotification() { Index = 2 });
+
         }
+        private void CopyAssign(DataRow from, DataRow to)
+        {
+            to[BillSheetColumns.CURRENT_SERVICE_NAME] = from[BillSheetColumns.CURRENT_SERVICE_NAME];
+            to[BillSheetColumns.CURRENT_SERVICE_ID] = from[BillSheetColumns.CURRENT_SERVICE_ID];
+            to[BillSheetColumns.SYS_SERVICE_AREA] = from[BillSheetColumns.SYS_SERVICE_AREA];
+            to[BillSheetColumns.SYS_HISTORY] = from[BillSheetColumns.SYS_HISTORY];
+        }
+        private void AssignTo(DataRow bill, MemberA member)
+        {
+
+            if(!bill.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+            {
+                var serID = (string)bill[BillSheetColumns.CURRENT_SERVICE_ID];
+                if(serID.Equals(member.ID, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            bill[BillSheetColumns.CURRENT_SERVICE_NAME] = member.Name;
+            bill[BillSheetColumns.CURRENT_SERVICE_ID] = member.ID;
+            bill[BillSheetColumns.SYS_SERVICE_AREA] = member.Area;
+            
+            DataTable dt = null;
+            if(bill.Table == DataTable)
+            {
+                dt = CacheDataTable;
+            }
+            else
+            {
+                dt = DataTable;
+            }
+
+            var guid = (Guid)bill[BillSheetColumns.SYS_GUID];
+            DataRow anotherRow = null;
+            foreach(DataRow row in dt.Rows)
+            { 
+                if(((Guid)row[BillSheetColumns.SYS_GUID]).Equals(guid))
+                {
+                    anotherRow = row;
+                    break;
+                }
+            }
+
+            if(anotherRow != null)
+            {
+                anotherRow[BillSheetColumns.CURRENT_SERVICE_NAME] = member.Name;
+                anotherRow[BillSheetColumns.CURRENT_SERVICE_ID] = member.ID;
+                anotherRow[BillSheetColumns.SYS_SERVICE_AREA] = member.Area;
+                LogAssgign(anotherRow, member);
+            }
+            LogAssgign(bill, member);
+        }
+
         private void CalculateCountForMembers(DataTable dt)
         {
-            foreach(MemberA member in Members)
+            if(dt == null)
+                return;
+
+            foreach (MemberA member in Members)
             {
                 member.Count = 0;
                 member.Price = 0;
@@ -714,23 +885,23 @@ namespace InsuranceCompareTool.ViewModels
 
             bool hasPriceCol = dt.Columns.Contains(BillSheetColumns.BILL_PRICE);
 
-            if(dt.Columns.Contains(BillSheetColumns.CURRENT_SERVICE_ID))
+            if (dt.Columns.Contains(BillSheetColumns.CURRENT_SERVICE_ID))
             {
-                foreach(DataRow row in dt.Rows)
+                foreach (DataRow row in dt.Rows)
                 {
-                    if(row.IsNull(BillSheetColumns.CURRENT_SERVICE_ID)) 
+                    if (row.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
                         continue;
-                    var serID = (string) row[BillSheetColumns.CURRENT_SERVICE_ID];
+                    var serID = (string)row[BillSheetColumns.CURRENT_SERVICE_ID];
                     var mem = Members.FirstOrDefault(a =>
                         a.ID.Equals(serID, StringComparison.CurrentCultureIgnoreCase));
-                    if(mem == null)
+                    if (mem == null)
                         continue;
-                    if(hasPriceCol)
+                    if (hasPriceCol)
                     {
-                        if(!row.IsNull(BillSheetColumns.BILL_PRICE))
+                        if (!row.IsNull(BillSheetColumns.BILL_PRICE))
                         {
-                            var price = (double) row[BillSheetColumns.BILL_PRICE];
-                            mem.Price += price; 
+                            var price = Convert.ToDouble(row[BillSheetColumns.BILL_PRICE]);
+                            mem.Price += price;
                         }
                     }
                     mem.Count++;
@@ -738,16 +909,98 @@ namespace InsuranceCompareTool.ViewModels
             }
 
             var firMem = Members.FirstOrDefault(a => a.Count > 0);
-            if(firMem != null)
+            if (firMem != null)
             {
-                var area = this.Areas.FirstOrDefault(a => a == firMem.Area);
-                this.AreaView.View.MoveCurrentTo(area);
-
+                mCurrentArea = this.Areas.FirstOrDefault(a => a == firMem.Area);
+                this.AreaView.View.MoveCurrentTo(mCurrentArea); 
             }
+            
             MemberView.View.Refresh();
+            ReportMembersView.View.Refresh();
         }
         #endregion
         #region Commands
+        public ICommand AssignToServiceBCommand
+        {
+            get
+            {
+                if(mAssignToServiceBCommand == null)
+                {
+                    mAssignToServiceBCommand = new DelegateCommand<MemberA>((m) =>
+                    { 
+                        if (m == null)
+                            return;
+
+                        foreach (var row in mCurrentSelectedRows)
+                        {
+                            AssignTo(row,m); 
+                        }
+
+                        this.CalculateCountForMembers(DataTable);
+                    });
+                }
+                return mAssignToServiceBCommand;
+            }
+        }
+        public ICommand AssignToServiceCommand
+        {
+            get
+            {
+                if (mAssignToServiceCommand == null)
+                {
+                    mAssignToServiceCommand = new DelegateCommand(() =>
+                    {
+
+                        var mem = SelectMemberView.View.CurrentItem as MemberA;
+                        if (mem == null)
+                            return;
+
+                        foreach (var row in SelectedRows)
+                        {  
+                            AssignTo(row, mem); 
+                        }
+                        this.CalculateCountForMembers(DataTable);
+
+                    });
+                }
+
+                return mAssignToServiceCommand;
+            }
+        }
+        public ICommand AssignToSomebodyCommand
+        {
+            get
+            {
+                return mAssignToSomebodyCommand ?? (mAssignToSomebodyCommand = new DelegateCommand(() =>
+                {
+                    var mem = MemberView.View.CurrentItem as MemberA;
+                    if (mem == null)
+                        return;
+
+                    foreach (var row in mCurrentSelectedRows)
+                    {
+                        AssignTo(row, mem);
+                    }
+                    this.CalculateCountForMembers(DataTable);
+                }));
+            }
+        }
+        public ICommand AssignToSomebodyByMenuCommand
+        {
+            get
+            {
+                return mAssignToSomebodyByMenuCommand ?? (mAssignToSomebodyByMenuCommand = new DelegateCommand <MemberA>(( mem) =>
+                { 
+                    if (mem == null)
+                        return; 
+                    foreach (var row in mCurrentSelectedRows)
+                    {
+                        AssignTo(row, mem);
+                    }
+                    this.CalculateCountForMembers(DataTable);
+                }));
+            } 
+        }
 
         public ICommand SearchCommand
         {
@@ -756,17 +1009,21 @@ namespace InsuranceCompareTool.ViewModels
                 return new DelegateCommand<string>((s) =>
                 {
                     this.FilterView.View.MoveCurrentTo(null);
-                    var unstrCols = BillTableColumns.Columns.Where(a => a.Type != typeof(String)).Select(a=>a.Name).ToArray();
+                    List<string> unstrCols = new List<string>();
+                    foreach (var col in BillTableColumns.Columns.Where(a => a.Type != typeof(String)))
+                    {
+                        unstrCols.AddRange(col.Name);
+                    }
                     var str = "";
                     var cols = Columns.Where(a => a.IsVisible == true);
-                    foreach(var col in cols)
+                    foreach (var col in cols)
                     {
-                        if(unstrCols.Contains(col.Name))
+                        if (unstrCols.Contains(col.Name))
                         {
                             continue;
                         }
 
-                        if(!string.IsNullOrEmpty(str))
+                        if (!string.IsNullOrEmpty(str))
                         {
                             str += " or ";
                         }
@@ -774,15 +1031,15 @@ namespace InsuranceCompareTool.ViewModels
                         str += $"{col.Name} like '%{s}%'";
                     }
 
-                    if(string.IsNullOrEmpty(s))
+                    if (string.IsNullOrEmpty(s))
                     {
-                        DataTable.DefaultView.RowFilter = "";
+                        CurrentDataTable.DefaultView.RowFilter = "";
                     }
                     else
                     {
-                        DataTable.DefaultView.RowFilter = str;
+                        CurrentDataTable.DefaultView.RowFilter = str;
                     }
-                    
+
                 });
             }
         }
@@ -809,73 +1066,142 @@ namespace InsuranceCompareTool.ViewModels
                         try
                         {
 
-                            DataTable dt = await Task<DataTable>.Run(() =>
+                            DataTable dt = await Task.Run(() =>
                             {
-                                return loader.Load(openFileDialog.FileName);
+                                var dct = loader.Load(openFileDialog.FileName);
+                                var memhelp = new MemberService();
+                                memhelp.Load(Settings.Default.MembersFile);
+                                var mems = memhelp.GetMembers();
+
+                                var formater = new BillFormatHelper(mLogger, mems);
+                                formater.Format(dct);
+
+                                CheckDatatable(dct);
+                                return dct;
+
                             });
-                            
-                            var memhelp = new MemberService();
-                            memhelp.Load(Settings.Default.MembersFile);
-                            var mems = memhelp.GetMembers();
-                            var formater = new BillFormatHelper(mLogger, mems);
-                            formater.Format(dt);
+
                             CalculateCountForMembers(dt);
-                            CheckDatatable(dt);
                             MakeColumns(dt);
                             DataTable = dt;
-
+                             
+                            this.CacheDataTable = dt.Clone();
                         }
-                        catch (Exception ex) { }
+                        catch (Exception ex)
+                        {
+                            Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message, "error", MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                        }
                         finally
                         {
                             mFilters.Clear();
                             IsBusy = false;
                         }
-
+                        ReportMembersView.View.Refresh();
+                        SelectItemNotification?.Raise(new ShowTabItemNotification(){ Index = 2 });
                     }
                 });
             }
+        }
+        public ICommand SelectCachedBillsCommand
+        {
+            get
+            {
+                if(mSelectCachedBillsCommand == null)
+                {
+                    mSelectCachedBillsCommand = new DelegateCommand<ObservableCollection<object>>((b) =>
+                    {
+                        var list = new List<DataRow>();
+                        foreach(DataRowView row in b)
+                        {
+                            list.Add(row.Row);
+                        } 
+                        SelectedCachedRows = list;
+                    }); 
+                }
+
+                return mSelectCachedBillsCommand;
+            }
+
         }
         public ICommand SelectBillCommand
         {
             get
             {
-                if(mSelectBillCommand == null)
+                if (mSelectBillCommand == null)
                 {
                     mSelectBillCommand = new DelegateCommand<ObservableCollection<object>>((b) =>
                     {
                         this.SelectedMembers.Clear();
-                        var list  = new System.Collections.Generic.Dictionary<string,MemberA>();
-                        foreach(DataRowView row in b)
+                        var list = new System.Collections.Generic.Dictionary<string, MemberA>();
+                        var selectedRows = new List<DataRow>();
+
+                        foreach (DataRowView row in b)
                         {
                             var bill = row.Row;
-                            if(!bill.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                            selectedRows.Add(bill);
+                            if (!bill.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
                             {
                                 var sid = Convert.ToString(bill[BillSheetColumns.CURRENT_SERVICE_ID]);
-                                if(list.ContainsKey(sid))
+                                if (list.ContainsKey(sid))
                                     continue;
                                 var mem = mMembers.FirstOrDefault(a => a.ID.Equals(sid));
-                                if(mem == null)
+                                if (mem == null)
                                     continue;
                                 //if(mem.Status != StatusNames.ZAI_ZI)
                                 //    continue;
                                 //list[sid]  = new MemberA(){ ID = sid, Area = mem.Area, Name = mem.Name };
                                 list[sid] = mem;
-
+                              
                             }
                         }
-                        if(list.Count <=1)
+                        this.SelectedRows = selectedRows;
+                        if (list.Count <= 1)
                             return;
-                        foreach(KeyValuePair<string, MemberA> mem in list)
+                        foreach (KeyValuePair<string, MemberA> mem in list)
                         {
                             this.SelectedMembers.Add(mem.Value);
                         }
 
                         this.SelectMemberView.View.MoveCurrentToFirst();
+                        
                     });
                 }
 
                 return mSelectBillCommand;
+            }
+        }
+
+        public ICommand SaveMemberCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    var targetPath = $"{Settings.Default.WorkPath}\\调单保单统计";
+
+                    var list = new List<MemberA>();
+                    this.ReportMembersView.View.MoveCurrentToFirst();
+                    do
+                    {
+                        list.Add(this.ReportMembersView.View.CurrentItem as MemberA);
+                    } while(this.ReportMembersView.View.MoveCurrentToNext());
+                    
+
+                    try
+                    {
+                        var helper = new MemberExportHelper(); 
+                        helper.Export(targetPath, list);
+                        if (!string.IsNullOrEmpty(targetPath))
+                            Process.Start(targetPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+
+
+                });
             }
         }
         public ICommand AddLayoutCommand
@@ -922,69 +1248,145 @@ namespace InsuranceCompareTool.ViewModels
         {
             get
             {
-                return new DelegateCommand(ExportTypeDBills);
+                return new DelegateCommand(ExportDBillsAll);
             }
         }
+        public ICommand ExportFCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {  
+                    ExportDBills(mCurrentSelectedRows);
+                });
+            }
+        }
+        public ICommand CopyMemberCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    StringBuilder sb = new StringBuilder();
+                    ReportMembersView.View.MoveCurrentToFirst(); 
+                     
+                    do
+                    {
+                        var mem = ReportMembersView.View.CurrentItem as MemberA;
+                        var c = ' ';
+                        sb.AppendLine($"{mem.ID.PadRight(10,c)}\t{mem.Name.ToString().PadRight(5, c)}\t{mem.Count.ToString().PadLeft(5,c)}\t\t{mem.Price.ToString("N").PadLeft(13,c)}\t\t{mem.Area}");
+                    } while(ReportMembersView.View.MoveCurrentToNext());
+                    Clipboard.SetText(sb.ToString());
+                    Xceed.Wpf.Toolkit.MessageBox.Show("营销员数据已拷贝到剪贴板,","成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                });
+            }
+        }
+        public ICommand SaveToCacheBoxCommand
+        {
+            get
+            {
+                return  new DelegateCommand (() =>
+                { 
+                    foreach (var row in mSelectedRows)
+                    { 
+                        var guid = (Guid)row[BillSheetColumns.SYS_GUID];
+                        var ex = false;
+                        foreach(DataRow r in CacheDataTable.Rows)
+                        {
+                            if(((Guid)r[BillSheetColumns.SYS_GUID]).Equals(guid))
+                            {
+                                ex = true;
+                                break;
+                            }
+                        }
+                        if(ex == false)
+                            CacheDataTable.ImportRow(row);
+                    }
+                });
+            }
+        }
+
+        public ICommand DelCachedBillsCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    var list = mSelectedCachedRows.ToArray();
+                    foreach(var dr in list)
+                    {
+                        CacheDataTable.Rows.Remove(dr);
+                    }
+                     
+                });
+            }
+        }
+        public List<DataRow> GetChangedRows()
+        {
+            var rows = new List<DataRow>();
+            foreach (DataRow row in DataTable.Rows)
+            {
+                var oldServiceId = "";
+                var newServiceId = "";
+                if (!row.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                    newServiceId = (string)row[BillSheetColumns.CURRENT_SERVICE_ID];
+                if (!row.IsNull(BillSheetColumns.SYS_SERVICE_ID))
+                    oldServiceId = (string)row[BillSheetColumns.SYS_SERVICE_ID];
+                if (oldServiceId != newServiceId)
+                {
+                    rows.Add(row);
+                }
+            }
+
+            return rows;
+        }
+        public ICommand ExportGCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    var rows = GetChangedRows(); 
+                    ExportDBills(rows);
+                });
+            }
+        }
+
+        public ICommand AddSelectAllLayoutCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                { 
+                    foreach(var col  in Columns)
+                    {
+                        col.IsVisible = true;
+                    }
+                });
+            }
+        }
+
+        public ICommand AddUnSelectAllLayoutCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    foreach (var col in Columns)
+                    {
+                        col.IsVisible = false;
+                    }
+                });
+            }
+        }
+
+
         public ICommand ExportECommand
         {
             get
             {
                 return new DelegateCommand(ExportTypeEBills);
             }
-        }
-        public ICommand AssignToServiceCommand
-        {
-            get
-            {
-                if(mAssignToServiceCommand == null)
-                {
-                    mAssignToServiceCommand = new DelegateCommand<IEnumerable<object>>((m) =>
-                    { 
-
-                        var mem = SelectMemberView.View.CurrentItem as MemberA;
-                        if(mem == null)
-                            return;
-
-                        foreach(DataRowView dr in m)
-                        { 
-                            var row = dr.Row;
-                            row[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
-                            row[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
-                            LogAssgign(row,mem);
-                        }
-                        this.CalculateCountForMembers(DataTable);
-
-                    });
-                }
-
-                return mAssignToServiceCommand;
-            } 
-        }
-        private void AssignTo(MemberA mem)
-        {
-            
-        }
-        public ICommand AssignToSomebodyCommand
-        {
-            get
-            {
-                return mAssignToSomebodyCommand?? (mAssignToSomebodyCommand = new DelegateCommand<IEnumerable<object>>((mmm) =>
-                {
-                    var mem = MemberView.View.CurrentItem as MemberA;
-                    if(mem == null)
-                        return;
-                    var list = mmm.Cast<DataRowView>();
-                    foreach(var row in list)
-                    {  
-
-                        row.Row[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
-                        row.Row[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
-                        LogAssgign(row.Row, mem);
-                    }
-                    this.CalculateCountForMembers(DataTable);
-                }));
-            }
-            
         }
         public ICommand DoAssignCommand
         {
@@ -993,40 +1395,76 @@ namespace InsuranceCompareTool.ViewModels
                 return new DelegateCommand(AssignBills);
             }
         }
-        #endregion
-
-        private void LogAssgign(DataRow bill, MemberA mem)
+        public ICommand CopyBillContentCommand
         {
-            var log = Convert.ToString(bill[BillSheetColumns.SYS_HISTORY]);
-            var service = "";
-            if (!bill.IsNull(BillSheetColumns.SYS_SERVICE))
+            get
             {
-                service = Convert.ToString(bill[BillSheetColumns.SYS_SERVICE]);
-            }
-            var newlog = $"手工派单 -> {mem.Name} ({mem.ID} - {mem.Area})";
-            var history = "";
-            if (string.IsNullOrEmpty(log))
-            {
-                if (string.IsNullOrEmpty(service))
+                if(mCopyBillContentCommand == null)
                 {
-                    history = newlog;
-                }
-                else
-                {
-                    history = $"原始客服专员： {service}\r\n{newlog}";
+                    mCopyBillContentCommand = new DelegateCommand<string>((c) =>
+                    {
+                        var row = this.mCurrentSelectedRows.FirstOrDefault();
+                        if(row == null)
+                            return;
+                        if(!row.IsNull(c))
+                        {
+                            var value = Convert.ToString(row[c]);
+                            Clipboard.SetText(value);
+                        }
+                        else
+                        {
+                            Clipboard.SetText("空");
+                        }
+
+                    });
                 }
 
+                return mCopyBillContentCommand;
             }
-            else
-            {
-                history = $"{log}\r\n{newlog}";
-            }
-
-            bill[BillSheetColumns.SYS_HISTORY] = history;
         }
+        private DataTable mCurrentDataTable;
+        private DataTable CurrentDataTable
+        {
+            get
+            {
+                if(mCurrentDataTable == null)
+                {
+                    mCurrentDataTable = DataTable;
+                }
+
+                return mCurrentDataTable;
+            }
+        }
+        public ICommand SelectTabItemCommand
+        {
+            get
+            {
+                if(mSelectTabItemCommand == null)
+                {
+                    mSelectTabItemCommand = new DelegateCommand<object>((i) =>
+                    {
+                        var inti = Convert.ToInt32(i);
+                        if(inti == 0)
+                        {
+                            mCurrentDataTable = DataTable;
+                            mCurrentSelectedRows = SelectedRows;
+                        }
+
+                        if(inti == 1)
+                        {
+                            mCurrentDataTable = CacheDataTable;
+                            mCurrentSelectedRows = mSelectedCachedRows;
+                        }
+                    });
+                }
+
+                return mSelectTabItemCommand;
+            }
+        }
+        #endregion
     }
 
-   
+
 
     public class UIColumnData : BindableBase
     {
@@ -1037,6 +1475,8 @@ namespace InsuranceCompareTool.ViewModels
             get => mIsVisible;
             set => SetProperty(ref mIsVisible, value);
         }
+        public int Sort { get; set; }
+        public int Index { get; set; }
     }
     public class FilterData
     {
@@ -1044,7 +1484,7 @@ namespace InsuranceCompareTool.ViewModels
         public int Count { get; set; }
         public FilterType ShowType { get; set; }
     }
-    public enum  FilterType
+    public enum FilterType
     {
         ShowAll,
         ShowFilter,

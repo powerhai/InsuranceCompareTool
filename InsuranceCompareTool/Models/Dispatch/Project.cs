@@ -152,18 +152,21 @@ namespace InsuranceCompareTool.Models.Dispatch
                     {
                         return ColumnDataType.Number;
                     }
-                    case LogicColumnName.PayAddress: 
+                    case LogicColumnName.PayAddress:
+                    case LogicColumnName.ProductName:
                     {
                         return ColumnDataType.Address;
                     }
                     case LogicColumnName.DifferentArea:
                     case LogicColumnName.DifferentService:
+                    case LogicColumnName.SellerIsService:
                     {
                         return ColumnDataType.Other;
                     }
                     case LogicColumnName.ServiceStatus:
                     case LogicColumnName.ServiceID:
                     case LogicColumnName.PreviousServiceID:
+                    case LogicColumnName.ProductID:
                     default:
                     {
                         return ColumnDataType.String;

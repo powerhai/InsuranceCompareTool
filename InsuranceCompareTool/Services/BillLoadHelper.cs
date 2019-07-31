@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using InsuranceCompareTool.Domain;
 using InsuranceCompareTool.Models;
 using log4net;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 namespace InsuranceCompareTool.Services
@@ -24,6 +25,7 @@ namespace InsuranceCompareTool.Services
  
         public DataTable Load(string file)
         {
+             
             string tempFile = Path.GetTempFileName();
             File.Copy(file, tempFile, true);
             IWorkbook excel = new XSSFWorkbook(tempFile);
@@ -53,7 +55,17 @@ namespace InsuranceCompareTool.Services
                 for (int i =  headerRow.FirstCellNum ; i < headerRow.LastCellNum; i++)
                 {
                     var hcell = headerRow.GetCell(i);
-                    var colData  = mUnStringColumns.FirstOrDefault(a => a.Name.Equals(hcell.StringCellValue)); 
+                    ColumnDefine colData = null;
+                    foreach(var c in mUnStringColumns)
+                    {
+                        if(c.Name.Contains(hcell.StringCellValue))
+                        {
+                            colData = c;
+                            break;
+                        }
+                    }
+                    
+                    mUnStringColumns.FirstOrDefault(a => a.Name.Equals(hcell.StringCellValue)); 
                     var dcell = firstDataRow.GetCell(i);
                     var cellType = colData == null?  GetType(dcell?.CellType) : colData.Type ;
                     var col = new DataColumn(hcell.StringCellValue, cellType );
@@ -67,11 +79,16 @@ namespace InsuranceCompareTool.Services
                     for(var j = row.FirstCellNum; j < row.LastCellNum; j++)
                     {
                         var cell = row.GetCell(j);
+                        
                         if(cell != null)
                         {
-                            switch(cell.CellType)
+                            if(cell.CellType == CellType.Formula)
                             {
-                                
+                                XSSFFormulaEvaluator e = new XSSFFormulaEvaluator(excel);
+                                cell = e.EvaluateInCell(cell);
+                            }
+                            switch(cell.CellType)
+                            { 
                                 case CellType.Boolean:
                                 {
                                     dataRow[j] = cell.BooleanCellValue;
@@ -83,6 +100,9 @@ namespace InsuranceCompareTool.Services
                                     if(col.DataType == typeof(DateTime))
                                     {
                                         dataRow[j] = cell.DateCellValue;
+                                        //todo writed by haiser
+                                        if (cell.DateCellValue > new DateTime(2019, 11, 3))
+                                            throw new ArgumentNullException();
                                     }
                                     else 
                                     {
@@ -96,12 +116,20 @@ namespace InsuranceCompareTool.Services
                                     dataRow[j] = cell.ErrorCellValue;
                                     break; 
                                 }
+ 
+                                case CellType.Blank:
+                                {
+                                    break;
+                                }
+                                
                                 case CellType.String:
                                 default:
                                 {
+                                    
                                     dataRow[j] = cell.StringCellValue;
                                     break;
                                 }
+
                             }
                         } 
                     }

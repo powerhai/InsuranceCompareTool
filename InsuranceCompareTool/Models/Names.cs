@@ -53,6 +53,7 @@ namespace InsuranceCompareTool.Models
         public const string BILL_PRICE = "本期应缴保费";
         public const string BILL_PRICE2 = "保费";
         public const string PRODUCT_NAME = "险种名称";
+        public const string PRODUCT_ID = "险种代码";
         public const string PER_PAY = "是否垫缴";
         public const string CREDITOR = "被保险人";
         public const string CUSTOMER_ACCOUNT = "帐号";
@@ -64,7 +65,7 @@ namespace InsuranceCompareTool.Models
 
         public const string ASSIGNED_SERVICE_ID = "改派后专员工号";
         public const string ASSIGNED_SERVICE_NAME = "改派后专员姓名";
-        public const string SYS_SERVICE_STATUS = "客服专员状态";
+        public const string SYS_SERVICE_STATUS = "客服状态";
         public const string PREVIOUS_SERVICE_ID = "上期服务人员工号";
         public const string PREVIOUS_SERVICE = "上期服务人员";
         public const string PREVIOUS_PAY_DATE = "上期缴费日期";
@@ -73,7 +74,11 @@ namespace InsuranceCompareTool.Models
         public const string SYS_FINISHED = "System_Finished";
         public const string SYS_HISTORY = "System_History";
         public const string SYS_SERVICE = "System_SERVICE";
+        public const string SYS_SERVICE_ID = "System_SERVICEID"; 
         public const string SYS_ERROR = "System_Error";
+        public const string SYS_GUID = "System_GUID";
+        public const string SYS_SERVICE_AREA = "客服地区";
+        public const string SYS_SELLER_AREA = "营销员地区";
     }
 
     public static class MemberSheetColumns

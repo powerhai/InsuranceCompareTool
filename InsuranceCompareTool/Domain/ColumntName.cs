@@ -34,7 +34,13 @@ namespace InsuranceCompareTool.Domain {
         [Description(BillSheetColumns.PAY_NO)]
         PayNo,
         [Description("投保人与营销员所在地不同")]
-        DifferentArea 
+        DifferentArea ,
 
+        [Description("险种名称")]
+        ProductName,
+        [Description("险种代码")] 
+        ProductID,
+        [Description("客服专员售出保单")]
+        SellerIsService
     }
 }

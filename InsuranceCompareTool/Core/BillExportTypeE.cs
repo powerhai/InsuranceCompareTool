@@ -25,7 +25,7 @@ namespace InsuranceCompareTool.Core
                     Directory.CreateDirectory(targetPath);
                 }
                 var fileName = $"{targetPath}\\{DateTime.Now:yyyy-MM-dd--ss-mm}.xlsx";
- 
+
                 WriteBook(fileName, columns, bills.Columns, bills.Rows);
             }
             catch (Exception e)
@@ -68,8 +68,8 @@ namespace InsuranceCompareTool.Core
                     if (dr.IsNull(colName))
                         continue;
                     var cellValue = dr[colName];
-                    
-          
+
+
                     var cell = row.CreateCell(i);
                     var dataType = billsColumns[colName].DataType;
                     if (dataType == typeof(double))
@@ -85,13 +85,13 @@ namespace InsuranceCompareTool.Core
                         cell.SetCellValue((int)cellValue);
                     }
                     else if (dataType == typeof(DateTime))
-                    { 
+                    {
                         var cellStyle = sheet.Workbook.CreateCellStyle();
                         var format = sheet.Workbook.CreateDataFormat();
                         cellStyle.DataFormat = format.GetFormat("yyyy/mm/dd");
                         cell.CellStyle = cellStyle;
                         cell.SetCellValue((DateTime)cellValue);
-                        
+
                     }
                     else if (dataType == typeof(DBNull))
                     {

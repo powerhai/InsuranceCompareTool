@@ -22,6 +22,7 @@ namespace InsuranceCompareTool.Models
         public int BillCount { get; set; } = 0;
         public bool VirtualMember { get; set; } = false;
         public bool Reportable { get; set; } = false;
+        
     }
 
     public class Bill

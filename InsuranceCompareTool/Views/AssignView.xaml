@@ -6,12 +6,13 @@
 	xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
 	xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
 	xmlns:valueConverter="clr-namespace:InsuranceCompareTool.ShareCommon.ValueConverter"
+	xmlns:shareCommon="clr-namespace:InsuranceCompareTool.ShareCommon"
 	x:Class="InsuranceCompareTool.Views.AssignView" x:Name="Root"
 	mc:Ignorable="d"   d:DesignHeight="450" d:DesignWidth="800"
              prism:ViewModelLocator.AutoWireViewModel="True"  >
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="Boolean2VisibleConverter" />
-
+        <valueConverter:IntToEnableConverter x:Key="IntToEnableConverter"></valueConverter:IntToEnableConverter>
         <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -27,7 +28,10 @@
             </Setter>
         </Style>
         <valueConverter:MultiParameterConverter x:Key="MultiParameterConverter" />
-
+        <Style x:Key="dgCell" TargetType="TextBlock">
+            <Setter Property="TextAlignment" Value="Right"/>
+        </Style>
+        <valueConverter:IntToVisibleConverter x:Key="IntToVisibleConverter" />
     </UserControl.Resources>
     <Border Padding="10">
 
@@ -38,7 +42,7 @@
                 <RowDefinition Height="10"></RowDefinition>
                 <RowDefinition Height="1*"></RowDefinition>
                 <RowDefinition Height="10"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="0"></RowDefinition>
 
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" IsEnabled="{Binding IsExportEnable}" >
@@ -48,13 +52,13 @@
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                     <ColumnDefinition Width="10"></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
-</Grid.ColumnDefinitions>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="5"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
                 </Grid.RowDefinitions>
-                <GroupBox Padding="5" Header="过滤" Grid.Row="0" Grid.Column="0" Grid.RowSpan="3">
+                <GroupBox Padding="2" Header="过滤" Grid.Row="0" Grid.Column="0" Grid.RowSpan="3">
                     <ListBox ItemsSource="{Binding FilterView.View}"  BorderThickness="0"   VirtualizingPanel.IsVirtualizing="True">
                         <ListBox.Template>
                             <ControlTemplate TargetType="{x:Type ListBox}">
@@ -90,7 +94,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </GroupBox>
-                <GroupBox Padding="5" Grid.Row="0" Grid.Column="2" Header="搜索"   >
+                <GroupBox Padding="2" Grid.Row="0" Grid.Column="2" Header="搜索"   >
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -101,7 +105,7 @@
                         <Button Command="{Binding SearchCommand}" IsDefault="True" Grid.Column="2" CommandParameter="{Binding ElementName=SearchBox,Path=Text}">搜索</Button>
                     </Grid>
                 </GroupBox>
-                <GroupBox Padding="5" Grid.Column="2" Grid.Row="2" Header="自动派单"  >
+                <GroupBox Padding="2" Grid.Column="2" Grid.Row="2" Header="自动派单" IsEnabled="{Binding ElementName=TabControl,Path=SelectedIndex,Converter={StaticResource IntToEnableConverter}, ConverterParameter=0 }" >
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -112,7 +116,7 @@
                         <Button Command="{Binding DoAssignCommand}" Grid.Column="2">派单</Button>
                     </Grid>
                 </GroupBox>
-                <GroupBox Padding="5" Grid.Row="0" Grid.Column="4" Header="手动派单">
+                <GroupBox Padding="2" Grid.Row="0" Grid.Column="4" Header="手动派单">
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -149,14 +153,14 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>-->
                         </ComboBox>
-                        <Button Command="{Binding AssignToSomebodyCommand}" Grid.Column="4" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" >派单</Button>
-                       
+                        <Button Command="{Binding AssignToSomebodyCommand}" Grid.Column="4"   >派单</Button>
+
                     </Grid>
                 </GroupBox>
 
-                <GroupBox Header="手动派单 (选中行)" Padding="5" Grid.Row="2" Grid.Column="4" > 
+                <GroupBox Header="手动派单 (选中行)" Padding="2" Grid.Row="2" Grid.Column="4" >
                     <GroupBox.Style>
-                        <Style TargetType="{x:Type GroupBox}"> 
+                        <Style TargetType="{x:Type GroupBox}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding SelectedMembers.Count}" Value="0" >
                                     <Setter Property="IsEnabled" Value="False"></Setter>
@@ -167,7 +171,7 @@
 
                     <Grid VerticalAlignment="Center" >
                         <Grid.ColumnDefinitions>
-                            
+
                             <ColumnDefinition Width="*"></ColumnDefinition>
                             <ColumnDefinition Width="10"></ColumnDefinition>
                             <ColumnDefinition Width="50"></ColumnDefinition>
@@ -180,10 +184,10 @@
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" ></Setter>
                                 </Style>
                             </ComboBox.ItemContainerStyle>
-                           
+
                         </ComboBox>
-                        <Button Command="{Binding AssignToServiceCommand}" Grid.Column="2" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" >派单</Button>
-                       
+                        <Button Command="{Binding AssignToServiceCommand}" Grid.Column="2"  >派单</Button>
+
                     </Grid>
                 </GroupBox>
             </Grid>
@@ -201,25 +205,56 @@
                         <RowDefinition Height="Auto"></RowDefinition>
                         <RowDefinition Height="5"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="28"></RowDefinition>
                     </Grid.RowDefinitions>
 
                     <ListBox Grid.Row="0" ItemsSource="{Binding LayoutView.View}" IsSynchronizedWithCurrentItem="True" >
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
 
-
+                        <ListBox.Resources>
+                            <ControlTemplate TargetType="{x:Type ListBoxItem}" x:Key="EditLayout">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <xctk:IconButton Grid.Column="0"  Height="20" Width="20"  Command="{Binding ElementName=Root, Path=DataContext.DelLayoutCommand}" CommandParameter="{Binding .}" >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconDel}" />
+                                        </xctk:IconButton.Icon>
+                                    </xctk:IconButton>
+                                    <TextBox Grid.Column="2" Text="{Binding Title}" ></TextBox>
+                                </Grid>
+                            </ControlTemplate>
+                            <ControlTemplate TargetType="{x:Type ListBoxItem}" x:Key="DisplayLayout">
                                 <TextBlock  >
-										<xctk:IconButton  Height="20" Width="20"  Command="{Binding ElementName=Root, Path=DataContext.DelLayoutCommand}" CommandParameter="{Binding .}" >
-											<xctk:IconButton.Icon>
-												<Image Source="{StaticResource IconDel}" />
-											</xctk:IconButton.Icon>
-										</xctk:IconButton>
-										<Run Text="{Binding Title}" BaselineAlignment="Center"  ></Run>
+            <xctk:IconButton  Height="20" Width="20"  Command="{Binding ElementName=Root, Path=DataContext.DelLayoutCommand}" CommandParameter="{Binding .}" >
+                <xctk:IconButton.Icon>
+                    <Image Source="{StaticResource IconDel}" />
+                </xctk:IconButton.Icon>
+            </xctk:IconButton>
+            <Run Text="{Binding Title}" BaselineAlignment="Center"  ></Run>
                                 </TextBlock>
+                            </ControlTemplate>
+                        </ListBox.Resources>
+
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <Setter Property="Margin" Value="2" />
+                                <Setter Property="Padding" Value="8" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Template" Value="{StaticResource EditLayout}" />
+                                        <Setter Property="Foreground" Value="Red"></Setter>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter Property="Template" Value="{StaticResource DisplayLayout}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
 
 
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
                     </ListBox>
                     <ListBox   ItemsSource="{Binding Columns}"  Grid.Row="2" >
 
@@ -229,6 +264,26 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+
+                    <Border Grid.Row="3"  >
+                        <Grid >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition  Width="1*"></ColumnDefinition>
+                                <ColumnDefinition  Width="1*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <xctk:IconButton  Grid.Column="0" Command="{Binding AddSelectAllLayoutCommand}" Height="25" Width="25"  ToolTip="全选" >
+                                <xctk:IconButton.Icon>
+                                    <Image Source="{StaticResource IconSelectAll}" />
+                                </xctk:IconButton.Icon>
+                            </xctk:IconButton>
+
+                            <xctk:IconButton  Grid.Column="1"  Command="{Binding AddUnSelectAllLayoutCommand}"  Height="25" Width="25" ToolTip="全不选">
+                                <xctk:IconButton.Icon>
+                                    <Image Source="{StaticResource IconUnSelectAll}" />
+                                </xctk:IconButton.Icon>
+                            </xctk:IconButton>
+                        </Grid>
+                    </Border>
 
 
                     <xctk:IconButton  Grid.Row="0"  Command="{Binding AddLayoutCommand}" VerticalAlignment="Top"  HorizontalAlignment="Right" Height="25" Width="25" Margin="-10">
@@ -240,24 +295,299 @@
                 </Grid>
 
 
-                <TabControl Grid.Column="2" >
-                    <TabItem Header="保单列表">
+                <TabControl Grid.Column="2"  x:Name="TabControl" >
+
+                    <i:Interaction.Triggers>
+                        <prism:InteractionRequestTrigger SourceObject="{Binding SelectItemNotification}">
+                            <shareCommon:ShowTabItemAction     />
+                        </prism:InteractionRequestTrigger>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding ElementName=Root,Path=DataContext.SelectTabItemCommand}" CommandParameter="{Binding ElementName=TabControl, Path=SelectedIndex}" />
+                        </i:EventTrigger>
+
+                    </i:Interaction.Triggers>
+
+
+                    <TabItem Header="保单列表" >
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="37*"/>
-                                <ColumnDefinition Width="350*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="250"/>
                             </Grid.ColumnDefinitions>
-                            <DataGrid   x:Name="DataGrid" ItemsSource="{Binding DataTable}" AutoGenerateColumns="True"  IsReadOnly="True"
+
+                            <Grid Grid.Column="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1*"></RowDefinition>
+                                    <RowDefinition Height="28"></RowDefinition>
+                                </Grid.RowDefinitions>
+
+
+                                <DataGrid   x:Name="DataGrid" ItemsSource="{Binding DataTable}" AutoGenerateColumns="True"  IsReadOnly="True"
 				          AutoGeneratingColumn="DataGrid_OnAutoGeneratingColumn"  CanUserAddRows="False"  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="Gainsboro"
 						  AutoGeneratedColumns="DataGrid_OnAutoGeneratedColumns" CanUserDeleteRows="False" CanUserResizeRows="False" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"
-				            EnableRowVirtualization="True" EnableColumnVirtualization="True"  SelectionMode="Extended" Grid.ColumnSpan="2"   >
+				            EnableRowVirtualization="True" EnableColumnVirtualization="True"  SelectionMode="Extended" Grid.Row="0"    >
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction Command="{Binding ElementName=Root,Path=DataContext.SelectBillCommand}" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" />
+                                        </i:EventTrigger>
+
+                                    </i:Interaction.Triggers>
+
+                                    <DataGrid.Resources>
+                                        <Style TargetType="{x:Type TextBlock}">
+                                            <Setter Property="TextWrapping" Value="Wrap"></Setter>
+                                            <Setter Property="Height" Value="Auto"></Setter>
+                                        </Style>
+                                    </DataGrid.Resources>
+                                    <DataGrid.RowDetailsTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="5" Background="#EAEAEA" >
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                        <ColumnDefinition Width="30"></ColumnDefinition>
+                                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock  Text="{Binding System_History}" TextWrapping="Wrap" Grid.Column="0"
+                                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="#069218" />
+                                                    <TextBlock  Text="{Binding System_Error}" TextWrapping="Wrap" Grid.Column="2"
+                                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="#C43808" />
+                                                </Grid>
+
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGrid.RowDetailsTemplate>
+                                    <DataGrid.ContextMenu>
+                                        <ContextMenu Visibility="{Binding ElementName=DataGrid, Path=SelectedItems.Count, Mode=OneWay, Converter={StaticResource IntToVisibleConverter}}">
+
+                                            <MenuItem   Header="导出选中行 - 上传系统" Command="{Binding ExportFCommand}"    >
+                                                <MenuItem.Icon>
+                                                    <Image Source="{StaticResource IconExportB2}" />
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+
+
+                                            <MenuItem Header="指派" ItemsSource="{Binding MemberView.View}"   >
+                                                <MenuItem.Icon>
+                                                    <Image Source="{StaticResource IconAssign}"></Image>
+                                                </MenuItem.Icon>
+                                                <MenuItem.ItemContainerStyle>
+                                                    <Style TargetType="{x:Type MenuItem}">
+                                                        <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.AssignToSomebodyByMenuCommand}"></Setter>
+                                                        <Setter Property="Header" Value="{Binding Title2}"></Setter>
+                                                        <Setter Property="CommandParameter" Value="{Binding .}"></Setter>
+
+                                                    </Style>
+                                                </MenuItem.ItemContainerStyle>
+                                            </MenuItem>
+
+                                            <MenuItem Header="指派 (选中行)" ItemsSource="{Binding SelectMemberView.View}"   >
+                                                <MenuItem.Icon>
+                                                    <Image Source="{StaticResource IconAssignB}"></Image>
+                                                </MenuItem.Icon>
+                                                <MenuItem.ItemContainerStyle>
+                                                    <Style TargetType="{x:Type MenuItem}">
+                                                        <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.AssignToServiceBCommand}"></Setter>
+                                                        <Setter Property="Header" Value="{Binding Title2}"></Setter>
+                                                        <Setter Property="CommandParameter" Value="{Binding .}"></Setter>
+
+                                                    </Style>
+                                                </MenuItem.ItemContainerStyle>
+                                            </MenuItem>
+                                            <MenuItem Header="复制"  ItemsSource="{Binding CopyableColumns}"   IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.SelectedRows.Count,Converter={StaticResource IntToEnableConverter},ConverterParameter=1}" >
+                                                <MenuItem.Icon>
+                                                    <Image Source="{StaticResource IconCopy}"></Image>
+                                                </MenuItem.Icon>
+                                                <MenuItem.ItemContainerStyle>
+                                                    <Style TargetType="{x:Type MenuItem}">
+                                                        <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.CopyBillContentCommand}"></Setter>
+                                                        <Setter Property="CommandParameter" Value="{Binding .}"></Setter>
+                                                    </Style>
+                                                </MenuItem.ItemContainerStyle>
+                                            </MenuItem>
+
+                                            <MenuItem   Header="存到暂存箱" Command="{Binding SaveToCacheBoxCommand}"   >
+                                                <MenuItem.Icon>
+                                                    <Image Source="{StaticResource IconShare}"></Image>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+
+
+
+                                        </ContextMenu>
+                                    </DataGrid.ContextMenu>
+                                </DataGrid>
+                                <Grid Grid.Row="1" >
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="10"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock ToolTip="{Binding SourceFile,Mode=OneWay,StringFormat=文件：{0}}" VerticalAlignment="Center"  IsHitTestVisible="False"   >
+						<Run>行数：</Run>
+						<Run Text="{Binding Path=DataTable.Rows.Count, Mode=OneWay}"  Foreground="DodgerBlue"></Run>
+						<Run Text="  "></Run>
+						<Run>金额：</Run>
+						<Run Text="{Binding Path=TotalMoney, Mode=OneWay}" Foreground="DodgerBlue"></Run>
+						<Run Text="  "></Run>
+						<Run>选中：</Run>
+						<Run Text="{Binding ElementName=DataGrid,Path=SelectedItems.Count,Mode=OneWay}"  Foreground="DodgerBlue"></Run>
+<Run Text="{Binding SourceFile,Mode=OneWay,StringFormat=文件：{0}}"  ToolTip="{Binding SourceFile}"></Run>
+                                    </TextBlock>
+
+
+                                    <xctk:IconButton   Grid.Column="2"  Height="25" Width="25"  ToolTip="导入"   Command="{Binding LoadBillCommand}">
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconOpen}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+
+
+                                    <xctk:IconButton   Grid.Column="4"  Height="25" Width="25"  ToolTip="保存 - 当前数据"  Command="{Binding ExportECommand}"  >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconSave}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+
+                                    <xctk:IconButton   Grid.Column="6"  Height="25" Width="25"  ToolTip="导出 - 上传（全部）"  Command="{Binding ExportDCommand}"  >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconExportB1}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+                                    <xctk:IconButton   Grid.Column="8"  Height="25" Width="25"  ToolTip="导出 - 上传（选中行）"  Command="{Binding ExportFCommand}"  >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconExportB2}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+                                    <xctk:IconButton   Grid.Column="10"  Height="25" Width="25"  ToolTip="导出 - 上传（变更行）"  Command="{Binding ExportGCommand}"  >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconExportB3}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+
+                                    <xctk:IconButton   Grid.Column="12"  Height="25" Width="25"  ToolTip="导出 - 下发机构打印"  Command="{Binding ExportCCommand}"  >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconExportA}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+
+                                    <xctk:IconButton   Grid.Column="14"  Height="25" Width="25"  ToolTip="存到暂存箱"  Command="{Binding SaveToCacheBoxCommand}"  >
+                                        <xctk:IconButton.Icon>
+                                            <Image Source="{StaticResource IconShare}" />
+                                        </xctk:IconButton.Icon>
+
+                                    </xctk:IconButton>
+                                </Grid>
+
+                            </Grid>
+
+                            <Grid Grid.Column="2">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1*"></RowDefinition>
+                                    <RowDefinition Height="28"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <DataGrid GridLinesVisibility="Horizontal" RowHeaderWidth="0"  HorizontalGridLinesBrush="Gainsboro"    ItemsSource="{Binding ReportMembersView.View}" AutoGenerateColumns="False" IsReadOnly="True">
+
+
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding Name}" Header="姓名" Width="45"></DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Count}" Header="单量" Width="35" ElementStyle="{StaticResource dgCell}"></DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Price,StringFormat={}{0:N}}" Header="金额" Width="70" ElementStyle="{StaticResource dgCell}" ></DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Area}" Header="地区" Width="40"></DataGridTextColumn>
+                                        <DataGridTemplateColumn   Header="指派" Width="30">
+                                                                <DataGridTemplateColumn.CellTemplate>
+                                                                    <DataTemplate>
+                                                    <xctk:IconButton      Height="25" Width="25"  ToolTip="指派"  Content="A"  Command="{Binding ElementName=Root,Path=DataContext.AssignToSomebodyByMenuCommand}" CommandParameter="{Binding .}">
+                                                                            <xctk:IconButton.Icon>
+                                                                                <Image Source="{StaticResource IconAssign}" />
+                                                                            </xctk:IconButton.Icon>
+                                                                        </xctk:IconButton>
+                                                </DataTemplate>
+                                                                </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+
+
+                                </DataGrid>
+                                <Border Grid.Row="1"  >
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition Width="10"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <xctk:IconButton   Grid.Column="1"  Height="25" Width="25"  ToolTip="另存为"  Content="A"  Command="{Binding SaveMemberCommand}">
+                                            <xctk:IconButton.Icon>
+                                                <Image Source="{StaticResource IConCache}" />
+                                            </xctk:IconButton.Icon>
+                                        </xctk:IconButton>
+                                        <xctk:IconButton  Grid.Column="3"  Height="25" Width="25" ToolTip="拷贝到剪贴板"  Command="{Binding CopyMemberCommand}">
+                                            <xctk:IconButton.Icon>
+                                                <Image Source="{StaticResource IconCopy}" />
+                                            </xctk:IconButton.Icon>
+                                        </xctk:IconButton>
+                                    </Grid>
+                                </Border>
+
+                            </Grid>
+
+
+                        </Grid>
+
+
+                    </TabItem>
+
+                    <TabItem  >
+                        <TabItem.Header>
+                            <TextBlock>
+                                <Run>暂存箱</Run>
+                                <Run> </Run>
+                                <Run Text="{Binding CacheDataTable.Count, Mode=OneWay}" Foreground="DodgerBlue"></Run>
+                            </TextBlock>
+                        </TabItem.Header>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"></RowDefinition>
+                                <RowDefinition Height="28"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="250"/>
+                            </Grid.ColumnDefinitions>
+
+                            <DataGrid    x:Name="CacheDataGrid" ItemsSource="{Binding CacheDataTable}" AutoGenerateColumns="True"  IsReadOnly="True" 
+				          AutoGeneratingColumn="DataGrid_OnAutoGeneratingColumn"  CanUserAddRows="False"  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="Gainsboro" RowBackground="#E7FAFE"
+						  AutoGeneratedColumns="DataGrid_OnAutoGeneratedColumns" CanUserDeleteRows="False" CanUserResizeRows="False" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"
+				            EnableRowVirtualization="True" EnableColumnVirtualization="True"  SelectionMode="Extended"  >
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="SelectionChanged">
-                                        <i:InvokeCommandAction Command="{Binding ElementName=Root,Path=DataContext.SelectBillCommand}" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}" />
+                                        <i:InvokeCommandAction Command="{Binding ElementName=Root,Path=DataContext.SelectCachedBillsCommand}" CommandParameter="{Binding ElementName=CacheDataGrid, Path=SelectedItems}" />
                                     </i:EventTrigger>
-                                   
                                 </i:Interaction.Triggers>
-
                                 <DataGrid.Resources>
                                     <Style TargetType="{x:Type TextBlock}">
                                         <Setter Property="TextWrapping" Value="Wrap"></Setter>
@@ -278,25 +608,173 @@
                                                 <TextBlock  Text="{Binding System_Error}" TextWrapping="Wrap" Grid.Column="2"
                                                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="#C43808" />
                                             </Grid>
-                                        
+
                                         </Border>
                                     </DataTemplate>
                                 </DataGrid.RowDetailsTemplate>
 
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu Visibility="{Binding ElementName=DataGrid, Path=SelectedItems.Count, Mode=OneWay, Converter={StaticResource IntToVisibleConverter}}">
+
+                                        <MenuItem   Header="导出选中行 - 上传系统" Command="{Binding ExportFCommand}"    >
+                                            <MenuItem.Icon>
+                                                <Image Source="{StaticResource IconExportB2}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+
+                                        <MenuItem Header="指派" ItemsSource="{Binding MemberView.View}"  >
+                                            <MenuItem.Icon>
+                                                <Image Source="{StaticResource IconAssign}"></Image>
+                                            </MenuItem.Icon>
+                                            <MenuItem.ItemContainerStyle>
+                                                <Style TargetType="{x:Type MenuItem}">
+                                                    <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.AssignToSomebodyByMenuCommand}"></Setter>
+                                                    <Setter Property="Header" Value="{Binding Title2}"></Setter>
+                                                    <Setter Property="CommandParameter" Value="{Binding .}"></Setter>
+
+                                                </Style>
+                                            </MenuItem.ItemContainerStyle>
+                                        </MenuItem>
+
+                                        <MenuItem Header="指派 (选中行)" ItemsSource="{Binding SelectMemberView.View}"  >
+                                            <MenuItem.Icon>
+                                                <Image Source="{StaticResource IconAssignB}"></Image>
+                                            </MenuItem.Icon>
+                                            <MenuItem.ItemContainerStyle>
+                                                <Style TargetType="{x:Type MenuItem}">
+                                                    <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.AssignToServiceBCommand}"></Setter>
+                                                    <Setter Property="Header" Value="{Binding Title2}"></Setter>
+                                                    <Setter Property="CommandParameter" Value="{Binding .}"></Setter>
+
+                                                </Style>
+                                            </MenuItem.ItemContainerStyle>
+                                        </MenuItem>
+
+                                        <MenuItem Header="复制"  ItemsSource="{Binding CopyableColumns}" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.SelectedCachedRows.Count,Converter={StaticResource IntToEnableConverter},ConverterParameter=1}"  >
+                                            <MenuItem.Icon>
+                                                <Image Source="{StaticResource IconCopy}"></Image>
+                                            </MenuItem.Icon>
+                                            <MenuItem.ItemContainerStyle>
+                                                <Style TargetType="{x:Type MenuItem}">
+                                                    <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu},Path=DataContext.CopyBillContentCommand}"></Setter>
+                                                    <Setter Property="CommandParameter" Value="{Binding .}"></Setter>
+                                                </Style>
+                                            </MenuItem.ItemContainerStyle>
+                                        </MenuItem>
+  
+                                        <MenuItem   Header="丢弃" Command="{Binding DelCachedBillsCommand}"    >
+                                            <MenuItem.Icon>
+                                                <Image Source="{StaticResource IconDel}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+
+
+
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
                             </DataGrid>
-                            <TextBlock  VerticalAlignment="Bottom" HorizontalAlignment="Right" IsHitTestVisible="False"  Margin="0,0,35,2" Grid.Column="1" >
-						<Run>总行数：</Run>
+
+                            <Grid Grid.Row="1" >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                    <ColumnDefinition Width="10"></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    <ColumnDefinition Width="10"></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    <ColumnDefinition Width="10"></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    <ColumnDefinition Width="10"></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock  VerticalAlignment="Center"  IsHitTestVisible="False"   >
+						<Run>行数：</Run>
 						<Run Text="{Binding Path=DataTable.Rows.Count, Mode=OneWay}"  Foreground="DodgerBlue"></Run>
 						<Run Text="  "></Run>
-						<Run>总金额：</Run>
+						<Run>金额：</Run>
 						<Run Text="{Binding Path=TotalMoney, Mode=OneWay}" Foreground="DodgerBlue"></Run>
 						<Run Text="  "></Run>
-						<Run>选中行：</Run>
-						<Run Text="{Binding ElementName=DataGrid,Path=SelectedItems.Count,Mode=OneWay}"  Foreground="DodgerBlue"></Run>
+						<Run>选中：</Run>
+						<Run Text="{Binding ElementName=CacheDataGrid,Path=SelectedItems.Count,Mode=OneWay}"  Foreground="DodgerBlue"></Run>
 
-                            </TextBlock>
+                                </TextBlock>
+
+
+                                <xctk:IconButton   Grid.Column="2"  Height="25" Width="25"  ToolTip="导出 - 上传（全部）"  Command="{Binding ExportDCommand}"  >
+                                    <xctk:IconButton.Icon>
+                                        <Image Source="{StaticResource IconExportB1}" />
+                                    </xctk:IconButton.Icon>
+
+                                </xctk:IconButton>
+                                <xctk:IconButton   Grid.Column="4"  Height="25" Width="25"  ToolTip="导出 - 上传（选中行）"  Command="{Binding ExportFCommand}"  >
+                                    <xctk:IconButton.Icon>
+                                        <Image Source="{StaticResource IconExportB2}" />
+                                    </xctk:IconButton.Icon>
+                                </xctk:IconButton>
+
+
+                                <xctk:IconButton   Grid.Column="6"  Height="25" Width="25"  ToolTip="丢弃"  Command="{Binding DelCachedBillsCommand}"  >
+                                    <xctk:IconButton.Icon>
+                                        <Image Source="{StaticResource IconDel}" />
+                                    </xctk:IconButton.Icon>
+
+                                </xctk:IconButton>
+                            </Grid>
+
+                            <Grid Grid.Column="2" Grid.Row="0" Grid.RowSpan="2">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1*"></RowDefinition>
+                                    <RowDefinition Height="28"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <DataGrid GridLinesVisibility="Horizontal" RowHeaderWidth="0"  HorizontalGridLinesBrush="Gainsboro"    ItemsSource="{Binding ReportMembersView.View}" AutoGenerateColumns="False" IsReadOnly="True">
+
+
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding Name}" Header="姓名" Width="45"></DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Count}" Header="单量" Width="35" ElementStyle="{StaticResource dgCell}"></DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Price,StringFormat={}{0:N}}" Header="金额" Width="70" ElementStyle="{StaticResource dgCell}" ></DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Area}" Header="地区" Width="40"></DataGridTextColumn>
+                                        <DataGridTemplateColumn   Header="指派" Width="30">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <xctk:IconButton      Height="25" Width="25"  ToolTip="指派"  Content="A"  Command="{Binding ElementName=Root,Path=DataContext.AssignToSomebodyByMenuCommand}" CommandParameter="{Binding .}">
+                                                        <xctk:IconButton.Icon>
+                                                            <Image Source="{StaticResource IconAssign}" />
+                                                        </xctk:IconButton.Icon>
+                                                    </xctk:IconButton>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+
+
+                                </DataGrid>
+                                <Border Grid.Row="1"  >
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition Width="10"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <xctk:IconButton   Grid.Column="1"  Height="25" Width="25"  ToolTip="另存为"  Content="A"  Command="{Binding SaveMemberCommand}">
+                                            <xctk:IconButton.Icon>
+                                                <Image Source="{StaticResource IConCache}" />
+                                            </xctk:IconButton.Icon>
+                                        </xctk:IconButton>
+                                        <xctk:IconButton  Grid.Column="3"  Height="25" Width="25" ToolTip="拷贝到剪贴板"  Command="{Binding CopyMemberCommand}">
+                                            <xctk:IconButton.Icon>
+                                                <Image Source="{StaticResource IconCopy}" />
+                                            </xctk:IconButton.Icon>
+                                        </xctk:IconButton>
+                                    </Grid>
+                                </Border>
+
+                            </Grid>
 
                         </Grid>
+
+
 
 
                     </TabItem>
@@ -305,7 +783,7 @@
 
                             <RichTextBox x:Name="T_Log" IsReadOnly="True" VerticalScrollBarVisibility="Auto"  
                                      HorizontalScrollBarVisibility="Disabled" />
-                            <xctk:IconButton    VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="35" Width="35" Margin="10" Click="ButtonBase_OnClick">
+                            <xctk:IconButton   VerticalAlignment="Bottom"  HorizontalAlignment="Right" Height="35" Width="35" Margin="10" Click="ButtonBase_OnClick">
                                 <xctk:IconButton.Icon>
                                     <Image Source="{StaticResource IconDel}" />
                                 </xctk:IconButton.Icon>
@@ -340,7 +818,7 @@
                     <ColumnDefinition Width="10"></ColumnDefinition>
                     <ColumnDefinition></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <GroupBox Padding="5" Header="导入">
+                <GroupBox Padding="2" Header="导入">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -363,14 +841,22 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <Button  Command="{Binding ExportECommand}"  Content="导出 - 原样导出" Grid.Column="0"></Button>
-                        <Button Command="{Binding ExportDCommand}"  Content="导出 - 上传系统" Grid.Column="2"></Button>
-                        <Button Command="{Binding ExportCCommand}" Content="导出 - 下发机构" Grid.Column="4"></Button>
+                        <Button  Command="{Binding ExportECommand}"  Content="原样导出" Grid.Column="0"></Button>
+                        <Button Command="{Binding ExportDCommand}"  Content="上传(全部)" Grid.Column="2"></Button>
+
+                        <Button Command="{Binding ExportFCommand}"  Content="上传(选中)" Grid.Column="4"  CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"></Button>
+                        <Button Command="{Binding ExportGCommand}"  Content="上传(变更)" Grid.Column="6"></Button>
+                        <Button Command="{Binding ExportCCommand}" Content="下发机构" Grid.Column="8"></Button>
                     </Grid>
 
                 </GroupBox>
             </Grid>
+
             <xctk:BusyIndicator Grid.Row="0" Grid.Column="0"   Grid.RowSpan="5" IsBusy="{Binding IsBusy}" BusyContent="正在加载数据 ..." >
 
             </xctk:BusyIndicator>

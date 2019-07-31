@@ -10,6 +10,7 @@ using InsuranceCompareTool.Models;
 using InsuranceCompareTool.Models.Dispatch;
 using InsuranceCompareTool.ShareCommon;
 using log4net;
+using NPOI.SS.Formula.Functions;
 namespace InsuranceCompareTool.Core
 {
 
@@ -20,6 +21,7 @@ namespace InsuranceCompareTool.Core
     {
         private readonly ILog mLogger;
         private readonly List<Member> mMembers;
+          
         private const string TARGET_SERVICE_ID = BillSheetColumns.ASSIGNED_SERVICE_ID;
         private const string TARGET_SERVICE_NAME = BillSheetColumns.ASSIGNED_SERVICE_NAME;
 
@@ -39,7 +41,7 @@ namespace InsuranceCompareTool.Core
                 row[BillSheetColumns.SYS_ERROR] = "";
             }
         }
-        public void AssignBills(DataTable dt, Project project)
+        public void AssignBills(DataTable dt, Project project )
         {
             UpdateDataTable(dt);
 
@@ -120,6 +122,16 @@ namespace InsuranceCompareTool.Core
                         hit.Add(GetHitStringValue(BillSheetColumns.SELLER_STATE, filter, bill));
                         break;
                     }
+                    case LogicColumnName.ProductID:
+                    {
+                        hit.Add(GetHitStringValue(BillSheetColumns.PRODUCT_ID, filter, bill));
+                        break;
+                    }
+                    case LogicColumnName.ProductName:
+                    {
+                        hit.Add(GetHitStringValue(BillSheetColumns.PRODUCT_NAME, filter, bill)); 
+                        break;
+                    }
                     case LogicColumnName.PayAddress:
                     {
                         var a1 = GetHitStringValue(BillSheetColumns.PAY_ADDRESS, filter, bill);
@@ -140,6 +152,18 @@ namespace InsuranceCompareTool.Core
                         hit.Add(GetHitByDifferentArea(filter, bill));
                         break;
                     }
+                    case LogicColumnName.SellerIsService:
+                    {
+                        hit.Add(GetHitBySellerIsService(filter,bill));
+                        break;
+                    }
+                    case LogicColumnName.CustomerPassportId:
+                    {
+                        var b1 = GetHitStringValue(BillSheetColumns.CUSTOMER_PASSPORT_ID, filter, bill);
+                        var b2 = GetHitStringValue(BillSheetColumns.CUSTOMER_PASSPORT_ID2, filter, bill);
+                        hit.Add(b1 || b2);
+                        break;
+                    }
  
                     default:
                     {
@@ -149,20 +173,28 @@ namespace InsuranceCompareTool.Core
                 }
             }
 
-            bool hited = true;
+            bool hited = false;
             var fs = filters.ToArray();
             for (var i = 0; i < fs.Length; i++)
             {
                 Filter f = fs[i];
-                if (f.BoolType == BoolType.And)
+                if(i == 0)
                 {
-                    hited = hited && hit[i];
+                    hited = hit[i];
+                }
+                else
+                {
+                    if (f.BoolType == BoolType.And)
+                    {
+                        hited = hited && hit[i]; 
+                    }
+
+                    if (f.BoolType == BoolType.Or)
+                    { 
+                        hited = hited || hit[i];
+                    }                   
                 }
 
-                if (f.BoolType == BoolType.Or)
-                {
-                    hited = hited || hit[i];
-                }
             }
              
 
@@ -444,6 +476,8 @@ namespace InsuranceCompareTool.Core
                 }
             }
 
+
+
             foreach(KeyValuePair<string, List<MemIndex>> item in list)
             {
                 string lastService = "";
@@ -470,9 +504,91 @@ namespace InsuranceCompareTool.Core
                         var dr = dt.Rows[m.Index];
                         dr[BillSheetColumns.SYS_FILTER] = step.Title;
                     }
+
+                    var targetServiceId = "";
+
+                    if(step.DispatchType == DispatchType.DispatchToSmallService)
+                    { 
+                        var member = GetSmallServiceID(item.Value,dt );
+
+                        foreach (var m2 in item.Value)
+                        {
+                            var dr = dt.Rows[m2.Index];
+                            dr[BillSheetColumns.CURRENT_SERVICE_ID] = member.ID;
+                            dr[BillSheetColumns.CURRENT_SERVICE_NAME] = member.Name;
+                            dr[BillSheetColumns.SYS_SERVICE_AREA] = member.Area; 
+                            LogHistory(dr, step, member);
+                        }
+                    }
+
+                    if(step.DispatchType == DispatchType.DispatchToLargeService)
+                    {
+                        var member = GetLargeServiceID(item.Value, dt); 
+                        foreach (var m2 in item.Value)
+                        {
+                            var dr = dt.Rows[m2.Index];
+                            dr[BillSheetColumns.CURRENT_SERVICE_ID] = member.ID;
+                            dr[BillSheetColumns.CURRENT_SERVICE_NAME] = member.Name;
+                            dr[BillSheetColumns.SYS_SERVICE_AREA] = member.Area;
+                            LogHistory(dr, step, member);
+                        } 
+                    } 
                 } 
             }
         }
+
+        private Member GetLargeServiceID(List<MemIndex> mems,DataTable dt)
+        {
+            var ms = new List<Member>();
+            foreach (var mem in mems)
+            {
+                var m = mMembers.FirstOrDefault(a =>
+                    a.ID.Equals(mem.ServiceID, StringComparison.CurrentCultureIgnoreCase));
+                m.BillCount = 0;
+                ms.Add(m);
+                foreach(DataRow dr in dt.Rows)
+                {
+                    if(!dr.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                    {
+                        var rowSerId = (string)dr[BillSheetColumns.CURRENT_SERVICE_ID];
+                        if(rowSerId.Equals(mem.ServiceID, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            m.BillCount += 1;
+                        }
+                    }
+                }
+            }
+
+            return ms.OrderByDescending(t => t.BillCount).FirstOrDefault();
+
+        }
+
+        private Member GetSmallServiceID(List<MemIndex> mems,DataTable dt)
+        {
+            var ms = new List<Member>();
+            foreach (var mem in mems)
+            {
+                var m = mMembers.FirstOrDefault(a =>
+                    a.ID.Equals(mem.ServiceID, StringComparison.CurrentCultureIgnoreCase));
+                m.BillCount = 0;
+                ms.Add(m);
+                foreach (DataRow dr in dt.Rows)
+                {
+                    if (!dr.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                    {
+                        var rowSerId = (string)dr[BillSheetColumns.CURRENT_SERVICE_ID];
+                        if (rowSerId.Equals(mem.ServiceID, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            m.BillCount += 1;
+                        }
+                    }
+                }
+
+            }
+            return ms.OrderBy(t => t.BillCount).FirstOrDefault();
+
+        }
+        
         private void AssignTo(DataRow bill, Step step)
         {
             switch(step.DispatchType)
@@ -502,6 +618,11 @@ namespace InsuranceCompareTool.Core
                     AssignToPreviousService(bill, step);
                     break;
                 }
+                case DispatchType.DispatchToSeller:
+                {
+                    AssignToSeller(bill, step);
+                    break;
+                }
                 case DispatchType.DoNot:
                 {
                     AssignToNot(bill, step);
@@ -524,9 +645,8 @@ namespace InsuranceCompareTool.Core
                 LogError(bill, $"{step.Title}: 未能找到 {area} 的主管，无法分配给主管. (保单号： {bid})"); 
             }
             else
-            {
-                bill[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
-                bill[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
+            { 
+                AssignTo(bill,mem); 
                 LogHistory(bill, step, mem);
 
             }
@@ -552,9 +672,8 @@ namespace InsuranceCompareTool.Core
                     LogError(row,$"{step.Title}: 未能找到工号为 {step.DispatchDesignated} 的员工，无法分配给指定人员. (保单号： {bid})");
                 }
                 else
-                {
-                    row[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
-                    row[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
+                { 
+                    AssignTo(row, mem);
                     LogHistory(row, step, mem);
 
                 }
@@ -588,8 +707,7 @@ namespace InsuranceCompareTool.Core
                     var manager = mMembers.FirstOrDefault(a => a.Area.Equals(mem.Area) && a.Position == PositionNames.MUSTER);
                     if(manager != null)
                     {
-                        row[BillSheetColumns.CURRENT_SERVICE_NAME] = manager.Name;
-                        row[BillSheetColumns.CURRENT_SERVICE_ID] = manager.ID;
+                        AssignTo(row, manager);
                         LogHistory(row, step, manager);
 
                     }
@@ -625,11 +743,9 @@ namespace InsuranceCompareTool.Core
                 {
                     var manager = mMembers.FirstOrDefault(a => a.Area.Equals(mem.Area) && a.Position == PositionNames.MUSTER);
                     if (manager != null)
-                    {
-                        row[BillSheetColumns.CURRENT_SERVICE_NAME] = manager.Name;
-                        row[BillSheetColumns.CURRENT_SERVICE_ID] = manager.ID;
-                        LogHistory(row, step, manager);
-
+                    { 
+                        AssignTo(row, manager);
+                        LogHistory(row, step, manager); 
                     }
                     else
                     {
@@ -661,15 +777,50 @@ namespace InsuranceCompareTool.Core
                 }
                 else
                 {
-                    bill[BillSheetColumns.CURRENT_SERVICE_NAME] = mem.Name;
-                    bill[BillSheetColumns.CURRENT_SERVICE_ID] = mem.ID;
+                    AssignTo(bill, mem);
                     LogHistory(bill, step, mem);
-
-
+                    
                 }
             }
 
             bill[BillSheetColumns.SYS_FILTER] = step.Title;
+        }
+
+        private void AssignToSeller(DataRow bill, Step step)
+        {
+            var bid = GetBillID(bill);
+            if(bill.IsNull(BillSheetColumns.SELLER_ID))
+            {
+                LogError(bill, $"{step.Title}: 营销员工号为空，无法分配.(保单号: {bid}) "); 
+                return;
+            }
+
+            var sid = Convert.ToString(bill[BillSheetColumns.SELLER_ID]).Trim();
+            if(string.IsNullOrEmpty(sid))
+            {
+                LogError(bill, $"{step.Title}: 营销员工号为空，无法分配.(保单号: {bid}) ");
+                return;
+            }
+             
+            var mem = mMembers.FirstOrDefault(a => a.ID.Equals(sid, StringComparison.CurrentCultureIgnoreCase) && a.Position.Equals( PositionNames.SERVICE, StringComparison.CurrentCultureIgnoreCase));
+            if (mem == null)
+            {
+                LogError(bill, $"{step.Title}: 未能找到工号为 {sid} 的客服专员，无法分配. (保单号： {bid})");
+            }
+            else
+            {
+                AssignTo(bill,mem);
+                LogHistory(bill, step, mem); 
+            }
+            bill[BillSheetColumns.SYS_FILTER] = step.Title;
+
+        }
+
+        private void AssignTo(DataRow bill, Member member)
+        {
+            bill[BillSheetColumns.CURRENT_SERVICE_NAME] = member.Name;
+            bill[BillSheetColumns.CURRENT_SERVICE_ID] = member.ID;
+            bill[BillSheetColumns.SYS_SERVICE_AREA] = member.Area;
         }
         private void LogError(DataRow bill, string error)
         {
@@ -687,7 +838,7 @@ namespace InsuranceCompareTool.Core
             bill[BillSheetColumns.SYS_ERROR] = log;
         }
         private void LogHistory(DataRow bill, Step step, Member mem)
-        {
+        { 
             var log = Convert.ToString(bill[BillSheetColumns.SYS_HISTORY]);
             var service = "";
             if(!bill.IsNull(BillSheetColumns.SYS_SERVICE))
@@ -735,6 +886,26 @@ namespace InsuranceCompareTool.Core
         {
             public int Index { get; set; }
             public string ServiceID { get; set; }
+        }
+
+        private bool GetHitBySellerIsService(Filter filter, DataRow bill)
+        {
+            bool b = false;
+            var bid = GetBillID(bill);
+            if (bill.IsNull(BillSheetColumns.SELLER_ID))
+            { 
+                return b;
+            }
+
+            var sid = Convert.ToString(bill[BillSheetColumns.SELLER_ID]).Trim();
+            if (string.IsNullOrEmpty(sid))
+            { 
+                return b;
+            }
+
+            var mem = mMembers.FirstOrDefault(a => a.ID.Equals(sid, StringComparison.CurrentCultureIgnoreCase) && a.Position.Equals(PositionNames.SERVICE, StringComparison.CurrentCultureIgnoreCase));
+            b = mem != null;
+            return b;
         }
 
         private bool GetHitByDifferentArea(Filter filter, DataRow bill)

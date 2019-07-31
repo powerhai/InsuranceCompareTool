@@ -48,6 +48,9 @@ namespace InsuranceCompareTool.ViewModels
             new EnumPackager(){ Enum = LogicColumnName.DifferentService },
             new EnumPackager(){ Enum = LogicColumnName.DifferentArea },
             new EnumPackager(){ Enum = LogicColumnName.PayNo },
+            new EnumPackager(){ Enum = LogicColumnName.ProductName },
+            new EnumPackager(){ Enum = LogicColumnName.ProductID },
+            new EnumPackager(){ Enum = LogicColumnName.SellerIsService },
         };
         public List<EnumPackager> OperatorTypesAddress => new List<EnumPackager>()
         {
@@ -97,6 +100,9 @@ namespace InsuranceCompareTool.ViewModels
             new EnumPackager(){Enum = DispatchType.DispatchToManagerOfCustomer},
             new EnumPackager(){Enum = DispatchType.DispatchToPreviousService},
             new EnumPackager(){Enum = DispatchType.DispatchToDesignated}, 
+            new EnumPackager(){Enum = DispatchType.DispatchToSmallService},
+            new EnumPackager(){Enum = DispatchType.DispatchToSeller},
+            new EnumPackager(){Enum = DispatchType.DispatchToLargeService},
             new EnumPackager(){Enum = DispatchType.DoNot},
         };
         public ProjectEditViewModel()
@@ -143,6 +149,21 @@ namespace InsuranceCompareTool.ViewModels
                     var step = new Step() { Title = $"步骤 {Project.Steps.Count + 1}" };
                     Project.Steps.Add(step);
                     Project.StepView.View.MoveCurrentToLast();
+                    ResetStepsIndex();
+                });
+            }
+        }
+        public ICommand InsertStepCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    var step = new Step() { Title = $"步骤 {Project.Steps.Count + 1}" };
+
+                    var index = this.Project.Steps.Count <=0? 0 : this.Project.StepView.View.CurrentPosition; 
+                    Project.Steps.Insert(index, step);
+                    Project.StepView.View.MoveCurrentTo(step);
                     ResetStepsIndex();
                 });
             }

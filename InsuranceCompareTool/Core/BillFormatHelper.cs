@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -15,6 +16,9 @@ namespace InsuranceCompareTool.Core
         Regex mIDReg = new Regex("^[A-Za-z\\d]*$");
         private readonly ILog mLogger;
         private readonly List<Member> mMembers;
+        private Dictionary<string,bool> mNonSellerId = new Dictionary<string, bool>();
+        private Dictionary<string,bool> mNonServiceId = new Dictionary<string, bool>();
+
         public BillFormatHelper(ILog logger, List<Member> members)
         { 
             mLogger = logger;
@@ -22,19 +26,137 @@ namespace InsuranceCompareTool.Core
         }
         public void Format(DataTable dt)
         {
-            AttachSystemColumns(dt);
+            AttachRequiredColumns(dt);
+            FormatStringColumns(dt); 
             FormatAddress(dt);
             FormatValidColumns(dt);
             FormatMobilePhone(dt);
-            AttachColumnServiceStatus(dt);
+            AttachColumnServiceStatus(dt); 
             AttachColumnPreviousServiceID(dt);
             AttachColumnReAssign(dt);
             AttachColumnClientArea(dt);
             FormatPreviousService(dt);
             FormatClientArea(dt);
             FormatReAssign(dt);
-            FormatSysService(dt);
+            FormatSysService(dt); 
+            FormatCurrentServiceID(dt); 
+            FormatSellerArea(dt);
+            FormatServiceArea(dt);
+            FormatGuid(dt);
+
+            foreach(KeyValuePair<string, bool>  item in mNonSellerId)
+            {
+                mLogger.Error($"未找到工号为 {item.Key} 的营销员");
+            }
+
+
+            foreach (KeyValuePair<string, bool> item in mNonServiceId)
+            {
+                mLogger.Error($"未找到工号为 {item.Key} 的客服专员");
+            }
         }
+
+        private void FormatGuid(DataTable dt)
+        {
+            foreach(DataRow dr in dt.Rows)
+            {
+                dr[BillSheetColumns.SYS_GUID] = Guid.NewGuid();
+            }
+        }
+        private void FormatSellerArea(DataTable dt)
+        {
+            foreach (DataRow dr in dt.Rows)
+            {
+                if (dr.IsNull(BillSheetColumns.SELLER_ID))
+                    continue;
+                string serId = (string) dr[BillSheetColumns.SELLER_ID];
+                var mem = mMembers.FirstOrDefault(  a => a.ID.Equals(serId));
+                if (mem != null)
+                {
+                    dr[BillSheetColumns.SYS_SELLER_AREA] = mem.Area;
+                }
+                else
+                {
+                    mNonSellerId[serId] = true;
+                }
+            }
+        }
+
+        private void FormatServiceArea(DataTable dt)
+        {
+            foreach (DataRow dr in dt.Rows)
+            {
+                if(dr.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                    continue;
+                string sellerId = (string) dr[BillSheetColumns.CURRENT_SERVICE_ID];
+                var mem = mMembers.FirstOrDefault(a => a.ID.Equals(sellerId));
+                if (mem != null)
+                {
+                    dr[BillSheetColumns.SYS_SERVICE_AREA] = mem.Area;
+                }
+                else
+                {
+                    mNonServiceId[sellerId] = true; 
+                }
+            }
+        }
+
+ 
+        private void FormatStringColumns(DataTable dt)
+        {
+            foreach(DataRow dr in dt.Rows)
+            {
+                foreach(DataColumn col in dt.Columns)
+                {
+                    if(col.DataType == typeof(string))
+                    {
+                        if(!dr.IsNull(col))
+                        {
+                            dr[col] = ((string)dr[col]).Trim().Replace("\"", "").Replace("[","").Replace("]",""); 
+                        }
+                    }
+                }
+            }
+        }
+
+        private void FormatCurrentServiceID(DataTable dt)
+        {
+            foreach (DataRow dr in dt.Rows)
+            {
+                var serviceName = "";
+                var serviceId = "";
+                if (!dr.IsNull(BillSheetColumns.CURRENT_SERVICE_NAME))
+                {
+                    serviceName = Convert.ToString(dr[BillSheetColumns.CURRENT_SERVICE_NAME]);
+                }
+
+                if (!dr.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
+                {
+                    serviceId = Convert.ToString(dr[BillSheetColumns.CURRENT_SERVICE_ID]);
+                }
+
+                if (!string.IsNullOrEmpty(serviceName) && string.IsNullOrEmpty(serviceId))
+                {
+                    var service = mMembers.Where(a =>
+                        a.Name.Equals(serviceName, StringComparison.CurrentCultureIgnoreCase) && a.Position.Equals(PositionNames.SERVICE )).ToArray();
+                    if(service.Length == 0)
+                    {
+                        mLogger.Warn($"未找到服务员：{serviceName}");
+                        continue;
+                    }
+
+                    if(service.Length > 1)
+                    {
+                        mLogger.Warn($"匹配到多名服务员：{serviceName}, 需手工选择");
+                        continue;
+                    }  
+                    dr[BillSheetColumns.CURRENT_SERVICE_ID] = service[0].ID;
+                }
+            }
+        }
+ 
+
+   
         private void FormatSysService(DataTable dt)
         {
             foreach(DataRow dr in dt.Rows)
@@ -56,8 +178,12 @@ namespace InsuranceCompareTool.Core
                     var service = $"{serviceName} ({serviceId})";
                     dr[BillSheetColumns.SYS_SERVICE] = service;
                 }
+
+                dr[BillSheetColumns.SYS_SERVICE_ID] = serviceId;
+
             }
         }
+
         private void FormatReAssign(DataTable dt)
         {
             if(!dt.Columns.Contains( BillSheetColumns.ASSIGNED_SERVICE_NAME))
@@ -101,54 +227,57 @@ namespace InsuranceCompareTool.Core
 
             if(dt.Columns.Contains(BillSheetColumns.ASSIGNED_SERVICE_NAME))
             {
-                if(!dt.Columns.Contains(col.Name))
+                if(!dt.Columns.Contains(col.FormalName))
                 {
-                    dt.Columns.Add(col.Name, col.Type);
+                    dt.Columns.Add(col.FormalName, col.Type);
                 }
             }
         }
-        private void AttachSystemColumns(DataTable dt)
+ 
+
+        private void AttachRequiredColumns(DataTable dt)
         {
-            var sysCols = BillTableColumns.Columns.Where(a => a.IsSystemColumn).ToArray();
+            var sysCols = BillTableColumns.Columns.Where(a => a.IsRequired).ToArray();
 
             foreach (var column in sysCols)
             {
-                if (!dt.Columns.Contains(column.Name))
+                if (!dt.Columns.Contains(column.FormalName))
                 {
-                    dt.Columns.Add(column.Name, column.Type);
+                    dt.Columns.Add(column.FormalName, column.Type);
                 }
             }
         }
 
         private void AttachColumnClientArea(DataTable dt)
         {
-            var col = BillTableColumns.COL_CLIENT_AREA;
-            if (dt.Columns.Contains(col.Name))
+            var col = BillTableColumns.COL_CUSTOMER_AREA;
+            if (dt.Columns.Contains(col.FormalName))
             {
                 return;
             }
-            dt.Columns.Add(col.Name, col.Type);
+            dt.Columns.Add(col.FormalName, col.Type);
         }
         private void AttachColumnServiceStatus(DataTable dt)
         {
             var col = BillTableColumns.COL_SERVICE_STATUS;
-            if(dt.Columns.Contains(col.Name))
+            if(dt.Columns.Contains(col.FormalName))
             {
                 return;
             }
              
-            dt.Columns.Add(col.Name, col.Type);
+            dt.Columns.Add(col.FormalName, col.Type);
             foreach(DataRow row in dt.Rows)
             {
                 if(!row.IsNull(BillSheetColumns.CURRENT_SERVICE_ID))
                 {
                     var sellerID = (string) row[BillSheetColumns.CURRENT_SERVICE_ID];
                     var mem = mMembers.Find(a => a.ID.Equals(sellerID));
-                    row[col.Name] = mem?.Status;
+                    row[col.Name.First()] = mem?.Status;
                 }
             }
         }
 
+        
 
         private void AttachColumnPreviousServiceID(DataTable dt)
         {
@@ -157,7 +286,7 @@ namespace InsuranceCompareTool.Core
                 if (!dt.Columns.Contains(BillSheetColumns.PREVIOUS_SERVICE_ID))
                 {
                     var col = BillTableColumns.COL_PREVIOUS_SERVICE_ID;
-                    dt.Columns.Add(new DataColumn(col.Name,col.Type));
+                    dt.Columns.Add(new DataColumn(col.Name.First(),col.Type));
                 }
             }
         }

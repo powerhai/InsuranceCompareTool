@@ -13,13 +13,14 @@ using NPOI.XSSF.UserModel;
 namespace InsuranceCompareTool.Core
 {
     /// <summary>
-    /// 导出订单 - 用于上传系统，500条
+    /// 导出订单 - 用于上传系统，500条 , 导出选中列
     /// </summary>
     public class BillExportTypeD
     {
         private const string SHEET_NAME = "Bills";
-        public void Export(string targetPath, DataTable bills, List<string> columns)
-        { 
+        public void Export(string targetPath, List<DataRow> dataRows, DataColumnCollection dataColumns, List<string> columns)
+        {
+            DataTable dt; 
             try
             {
                 if(!System.IO.Directory.Exists(targetPath))
@@ -27,23 +28,23 @@ namespace InsuranceCompareTool.Core
                     Directory.CreateDirectory(targetPath);
                 }
                 var fileNo = 1;
-                for(var i = 0; i < bills.Rows.Count; i += Settings.Default.ExportCount)
+                for(var i = 0; i < dataRows.Count; i += Settings.Default.ExportCount)
                 {
                     var rows = new List<DataRow>();
                     var fileName = $"{targetPath}\\上传报表 - {fileNo++}.xlsx";
                     for(var j = 0; j < Settings.Default.ExportCount; j++)
                     {
                         var index = i + j;
-                        if(index >= bills.Rows.Count)
+                        if(index >= dataRows.Count)
                         {
                             break;
                         }
                         
-                        var row = bills.Rows[index];
+                        var row = dataRows[index];
                         rows.Add(row);
                     }
                     
-                    WriteBook(fileName,columns, bills.Columns, rows);
+                    WriteBook(fileName,columns, dataColumns, rows);
                     
                 }
                 

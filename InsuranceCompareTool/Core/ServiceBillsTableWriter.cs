@@ -212,9 +212,7 @@ namespace InsuranceCompareTool.Core {
         }
         private void WriteBillRow(Bill bill, ISheet sheet   )
         { 
-            //todo writed by haiser
-            if(bill.PayDate > new DateTime(2019, 9, 3))
-                return;
+             
             
             var row = sheet.CreateRow(sheet.LastRowNum + 1);
             foreach (var column in Columns)

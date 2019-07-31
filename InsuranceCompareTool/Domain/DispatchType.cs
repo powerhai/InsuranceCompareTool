@@ -22,8 +22,19 @@ namespace InsuranceCompareTool.Domain {
         [Description("上期客服专员")]
         DispatchToPreviousService,
 
+        [Description("单量少的客服")]
+        DispatchToSmallService,
+
+
+        [Description("单量多的客服")]
+        DispatchToLargeService,
+        
+        [Description("保单营销员")]
+        DispatchToSeller,
+
         [Description("不分配")]
-        DoNot
+        DoNot,
+         
              
     }
 }

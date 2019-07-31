@@ -168,6 +168,11 @@ namespace InsuranceCompareTool.Services
                 throw;
             }
 
+            if(string.IsNullOrEmpty(bill.ID))
+            {
+                return null;
+            }
+
             return bill;
         }
 
